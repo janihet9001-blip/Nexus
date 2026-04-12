@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — PPT Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+  .ppt-wrap { max-width: 780px; margin: 0 auto; padding: 40px 24px 100px; position: relative; z-index: 1; }
+
+  .page-header { margin-bottom: 32px; }
+  .page-title { font-size: 28px; font-weight: 800; letter-spacing: 2px; background: linear-gradient(135deg, #22d3ee, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
+  .page-sub { font-size: 13px; color: var(--textSub); }
+
+  .builder-card { background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glassBorder); border-radius: 18px; padding: 28px; margin-bottom: 20px; }
+
+  .field-label { font-family: 'Fira Code', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+
+  .prompt-input { width: 100%; background: var(--faint); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; font-family: 'Outfit', sans-serif; font-size: 15px; color: var(--text); outline: none; resize: none; min-height: 80px; line-height: 1.6; transition: border-color 0.2s; }
+  .prompt-input:focus { border-color: var(--accent); }
+  .prompt-input::placeholder { color: var(--muted); }
+
+  .options-row { display: flex; gap: 14px; margin-top: 16px; flex-wrap: wrap; }
+
+  .option-group { flex: 1; min-width: 140px; }
+  .option-select { width: 100%; background: var(--faint); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
+  .option-select:focus { border-color: var(--accent); }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+
+  .btn-preview { background: var(--faint); border: 1px solid var(--border); border-radius: 10px; padding: 10px 20px; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 13px; color: var(--textSub); cursor: pointer; transition: all 0.15s; }
+  .btn-preview:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-build { background: linear-gradient(135deg, #0e7490, #22d3ee); color: #000; border: none; border-radius: 10px; padding: 10px 28px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 14px rgba(34,211,238,0.2); letter-spacing: 0.5px; }
+  .btn-build:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(34,211,238,0.3); }
+  .btn-build:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .suggestions-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .sug-chip { font-size: 11px; padding: 4px 12px; background: var(--faint); border: 1px solid var(--border); border-radius: 100px; cursor: pointer; color: var(--muted); font-family: 'Fira Code', monospace; transition: all 0.15s; }
+  .sug-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Preview */
+  .preview-card { background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glassBorder); border-radius: 16px; padding: 22px; margin-bottom: 20px; display: none; }
+  .preview-card.show { display: block; }
+  .preview-title { font-size: 15px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .preview-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .slides-list { display: flex; flex-direction: column; gap: 6px; }
+  .slide-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--faint); border: 1px solid var(--border); border-radius: 8px; }
+  .slide-num { font-family: 'Fira Code', monospace; font-size: 10px; width: 24px; height: 24px; border-radius: 6px; background: var(--accentGlow2); border: 1px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .slide-type { font-family: 'Fira Code', monospace; font-size: 9px; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); flex-shrink: 0; }
+  .slide-title { font-size: 12px; color: var(--text); flex: 1; }
+
+  /* Result */
+  .result-card { background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.2); border-radius: 16px; padding: 22px; text-align: center; display: none; }
+  .result-card.show { display: block; }
+  .result-icon { font-size: 40px; margin-bottom: 12px; }
+  .result-title { font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .result-sub { font-size: 12px; color: var(--textSub); margin-bottom: 16px; }
+  .btn-download { display: inline-block; background: linear-gradient(135deg, #0e7490, #22d3ee); color: #000; border: none; border-radius: 10px; padding: 11px 28px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; text-decoration: none; transition: all 0.2s; box-shadow: 0 2px 14px rgba(34,211,238,0.2); }
+
+  /* Loading */
+  .loading { display: none; text-align: center; padding: 20px; }
+  .loading.show { display: block; }
+  .loading-text { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  /* Error */
+  .err-box { background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2); border-radius: 10px; padding: 12px 16px; font-size: 12px; color: #f87171; display: none; margin-top: 12px; }
+  .err-box.show { display: block; }
+
+  /* Nav bar */
+  .nav-bar { position: sticky; top: 0; z-index: 50; background: var(--glass); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 14px; }
+  .nav-logo { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: 3px; background: linear-gradient(135deg, #22d3ee, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .nav-back { background: var(--faint); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; font-size: 13px; color: var(--muted); cursor: pointer; text-decoration: none; transition: all 0.15s; font-family: 'Outfit', sans-serif; }
+  .nav-back:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-btn { background: var(--faint); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-family: 'Fira Code', monospace; font-size: 11px; color: var(--muted); transition: all 0.15s; margin-left: auto; }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .step-badge { font-family: 'Fira Code', monospace; font-size: 10px; padding: 2px 8px; border-radius: 100px; background: var(--accentGlow2); border: 1px solid var(--accent); color: var(--accent); margin-bottom: 10px; display: inline-block; }
+
+  /* Spinner */
+  .spin { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<div class="nav-bar">
+  <a class="nav-back" href="/">← Back to NEXUS</a>
+  <span class="nav-logo">NEXUS</span>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
+</div>
+
+<div class="ppt-wrap">
+
+  <div class="page-header">
+    <div class="page-title">PPT Builder</div>
+    <div class="page-sub">Type any topic — NEXUS generates a complete, beautiful PowerPoint presentation</div>
+  </div>
+
+  <!-- Builder Card -->
+  <div class="builder-card">
+    <div class="step-badge">Step 1 — Describe your presentation</div>
+    <label class="field-label">What is your presentation about?</label>
+    <textarea class="prompt-input" id="promptInput"
+      placeholder="e.g. Climate Change and its impact on the world&#10;e.g. Introduction to Machine Learning&#10;e.g. How to start a startup in 2025"
+      rows="3"></textarea>
+
+    <div class="suggestions-row">
+      <span class="sug-chip" onclick="setPrompt('Climate Change')">Climate Change</span>
+      <span class="sug-chip" onclick="setPrompt('Introduction to Machine Learning')">Machine Learning</span>
+      <span class="sug-chip" onclick="setPrompt('How the Internet Works')">How Internet Works</span>
+      <span class="sug-chip" onclick="setPrompt('The Solar System')">Solar System</span>
+      <span class="sug-chip" onclick="setPrompt('History of India')">History of India</span>
+      <span class="sug-chip" onclick="setPrompt('Python Programming Basics')">Python Basics</span>
+      <span class="sug-chip" onclick="setPrompt('Artificial Intelligence in Healthcare')">AI in Healthcare</span>
+      <span class="sug-chip" onclick="setPrompt('How to Start a Business')">Start a Business</span>
+    </div>
+
+    <div class="options-row">
+      <div class="option-group">
+        <label class="field-label">Number of slides</label>
+        <select class="option-select" id="slideCount">
+          <option value="4">4 slides</option>
+          <option value="6" selected>6 slides</option>
+          <option value="8">8 slides</option>
+          <option value="10">10 slides</option>
+          <option value="12">12 slides</option>
+        </select>
+      </div>
+      <div class="option-group">
+        <label class="field-label">Color theme</label>
+        <select class="option-select" id="colorTheme">
+          <option value="midnight" selected>Midnight Blue</option>
+          <option value="ocean">Ocean Teal</option>
+          <option value="coral">Coral Energy</option>
+          <option value="forest">Forest Green</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-preview" onclick="previewSlides()">👁 Preview Slides</button>
+      <button class="btn-build" id="buildBtn" onclick="buildPPT()">⚡ Generate & Download PPT</button>
+    </div>
+
+    <div class="err-box" id="errBox"></div>
+  </div>
+
+  <!-- Preview Card -->
+  <div class="preview-card" id="previewCard">
+    <div class="preview-title" id="previewTitle">Slide Preview</div>
+    <div class="preview-sub" id="previewSub"></div>
+    <div class="slides-list" id="slidesList"></div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loadingBox">
+    <div class="spin"></div>
+    <div class="loading-text" id="loadingText">Generating your presentation...</div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+    <div class="result-icon">🎉</div>
+    <div class="result-title">Your PPT is ready!</div>
+    <div class="result-sub" id="resultSub">Your presentation has been generated successfully.</div>
+    <button class="btn-download" id="downloadBtn" onclick="buildPPT()">⬇ Download Again</button>
+  </div>
+
+</div>
+
+<script>
+  // ── Theme ─────────────────────────────────────────────
+  let currentTheme = localStorage.getItem('oracle_theme') || 'dark';
+
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('themeBtn').textContent = t === 'dark' ? '☀️ Light' : '🌙 Dark';
+  }
+
+  function toggleTheme() {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('oracle_theme', currentTheme);
+    applyTheme(currentTheme);
+  }
+
+  applyTheme(currentTheme);
+
+  // ── Helpers ───────────────────────────────────────────
+  function setPrompt(text) {
+    document.getElementById('promptInput').value = text;
+    document.getElementById('promptInput').focus();
+    hideAll();
+  }
+
+  function showErr(msg) {
+    const e = document.getElementById('errBox');
+    e.textContent = '❌ ' + msg;
+    e.classList.add('show');
+  }
+
+  function hideErr() {
+    document.getElementById('errBox').classList.remove('show');
+  }
+
+  function hideAll() {
+    document.getElementById('previewCard').classList.remove('show');
+    document.getElementById('loadingBox').classList.remove('show');
+    document.getElementById('resultCard').classList.remove('show');
+    hideErr();
+  }
+
+  function getInputs() {
+    return {
+      prompt:    document.getElementById('promptInput').value.trim(),
+      slides:    parseInt(document.getElementById('slideCount').value),
+      theme:     document.getElementById('colorTheme').value
+    };
+  }
+
+  // ── Preview ───────────────────────────────────────────
+  async function previewSlides() {
+    hideAll();
+    const { prompt, slides, theme } = getInputs();
+    if (!prompt) { showErr('Please enter a topic first!'); return; }
+
+    document.getElementById('loadingBox').classList.add('show');
+    document.getElementById('loadingText').textContent = 'Planning your slides...';
+
+    try {
+      const res  = await fetch('/api/preview-ppt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, slides, theme })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Preview failed');
+
+      document.getElementById('loadingBox').classList.remove('show');
+
+      // Build preview
+      document.getElementById('previewTitle').textContent = '📊 ' + data.topic;
+      document.getElementById('previewSub').textContent   = `${data.count} slides · ${theme} theme`;
+
+      const list = document.getElementById('slidesList');
+      list.innerHTML = data.slides.map(s => `
+        <div class="slide-row">
+          <div class="slide-num">${s.index}</div>
+          <div class="slide-type">${s.type}</div>
+          <div class="slide-title">${s.title}</div>
+        </div>`).join('');
+
+      document.getElementById('previewCard').classList.add('show');
+
+    } catch(e) {
+      document.getElementById('loadingBox').classList.remove('show');
+      showErr(e.message);
+    }
+  }
+
+  // ── Build & Download ──────────────────────────────────
+  async function buildPPT() {
+    hideAll();
+    const { prompt, slides, theme } = getInputs();
+    if (!prompt) { showErr('Please enter a topic first!'); return; }
+
+    const btn = document.getElementById('buildBtn');
+    btn.disabled = true;
+    document.getElementById('loadingBox').classList.add('show');
+
+    // Cycle loading messages
+    const msgs = [
+      'Planning slide structure...',
+      'Generating content for each slide...',
+      'Applying design theme...',
+      'Building your PowerPoint file...',
+      'Almost done...'
+    ];
+    let msgIdx = 0;
+    const msgInterval = setInterval(() => {
+      msgIdx = (msgIdx + 1) % msgs.length;
+      document.getElementById('loadingText').textContent = msgs[msgIdx];
+    }, 2000);
+
+    try {
+      const res = await fetch('/api/build-ppt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, slides, theme })
+      });
+
+      clearInterval(msgInterval);
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Generation failed');
+      }
+
+      // Trigger download
+      const blob     = await res.blob();
+      const url      = URL.createObjectURL(blob);
+      const a        = document.createElement('a');
+      const safeName = prompt.slice(0, 30).replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      a.href         = url;
+      a.download     = `nexus-${safeName}.pptx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      document.getElementById('loadingBox').classList.remove('show');
+      document.getElementById('resultSub').textContent =
+        `"${prompt}" — ${slides} slides, ${theme} theme. Open in PowerPoint or Google Slides.`;
+      document.getElementById('resultCard').classList.add('show');
+
+    } catch(e) {
+      clearInterval(msgInterval);
+      document.getElementById('loadingBox').classList.remove('show');
+      showErr(e.message);
+    }
+
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>

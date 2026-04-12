@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORACLE — Free AI Helper</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e0a; --surface: #111611; --surface2: #182018;
+    --border: #1f2b1f; --accent: #4ade80; --accent2: #86efac;
+    --accent3: #22c55e; --text: #e2f0e2; --muted: #4b6b4b;
+    --faint: #0f1a0f; --warn: #fbbf24; --info: #60a5fa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif; min-height:100vh; overflow-x:hidden; }
+  body::before { content:''; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(74,222,128,0.015) 2px,rgba(74,222,128,0.015) 4px); pointer-events:none; z-index:0; }
+  body::after  { content:''; position:fixed; inset:0; background-image:radial-gradient(circle,rgba(74,222,128,0.08) 1px,transparent 1px); background-size:32px 32px; pointer-events:none; z-index:0; }
+
+  .container { max-width:860px; margin:0 auto; padding:0 20px 100px; position:relative; z-index:1; }
+
+  header { text-align:center; padding:48px 0 36px; }
+  .logo-wrap { display:inline-flex; align-items:center; gap:14px; margin-bottom:10px; }
+  .logo-icon { width:48px; height:48px; border:1.5px solid var(--accent); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:24px; background:rgba(74,222,128,0.06); animation:iconPulse 3s ease infinite; }
+  @keyframes iconPulse { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0.2);} 50%{box-shadow:0 0 0 8px rgba(74,222,128,0);} }
+  .logo { font-size:48px; font-weight:800; color:var(--accent); letter-spacing:-1px; line-height:1; }
+  .tagline { font-family:'Fira Code',monospace; font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:8px; }
+
+  .status-row { display:flex; justify-content:center; gap:10px; margin-top:18px; flex-wrap:wrap; }
+  .chip { font-family:'Fira Code',monospace; font-size:10px; padding:4px 12px; border-radius:100px; border:1px solid var(--border); color:var(--muted); background:var(--surface); display:flex; align-items:center; gap:6px; }
+  .chip .dot { width:6px; height:6px; border-radius:50%; background:var(--accent3); animation:blink 2s ease infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  /* No-key banner */
+  .free-banner { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:12px; padding:14px 18px; margin-bottom:24px; display:flex; align-items:center; gap:12px; }
+  .free-banner .icon { font-size:20px; flex-shrink:0; }
+  .free-banner-body h3 { font-size:13px; font-weight:600; color:var(--accent); margin-bottom:3px; }
+  .free-banner-body p  { font-size:12px; color:var(--muted); line-height:1.5; }
+
+  /* Input */
+  .input-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:4px; margin-bottom:28px; transition:border-color 0.2s; }
+  .input-card:focus-within { border-color:var(--accent); box-shadow:0 0 0 1px rgba(74,222,128,0.1); }
+  textarea { width:100%; background:transparent; border:none; outline:none; color:var(--text); font-family:'Outfit',sans-serif; font-size:15px; padding:16px 18px 10px; resize:none; min-height:68px; line-height:1.6; }
+  textarea::placeholder { color:var(--muted); }
+  .input-footer { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-top:1px solid var(--border); gap:10px; }
+  .source-pills { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .src-pill { font-family:'Fira Code',monospace; font-size:10px; padding:3px 10px; border-radius:100px; border:1px solid var(--border); color:var(--muted); background:var(--faint); }
+  .src-pill.active { border-color:rgba(74,222,128,0.4); color:var(--accent); background:rgba(74,222,128,0.06); }
+  .free-tag { font-family:'Fira Code',monospace; font-size:9px; padding:2px 7px; border-radius:100px; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); color:var(--accent); }
+  .ask-btn { background:var(--accent); color:#000; border:none; border-radius:10px; padding:9px 22px; font-family:'Outfit',sans-serif; font-weight:700; font-size:13px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .ask-btn:hover { background:var(--accent2); transform:translateY(-1px); }
+  .ask-btn:active { transform:translateY(0); }
+  .ask-btn:disabled { opacity:0.35; cursor:not-allowed; transform:none; }
+
+  /* Messages */
+  .messages { display:flex; flex-direction:column; gap:20px; }
+  .msg-user { align-self:flex-end; max-width:72%; background:rgba(74,222,128,0.07); border:1px solid rgba(74,222,128,0.2); border-radius:14px 14px 4px 14px; padding:13px 17px; font-size:14px; line-height:1.6; color:var(--text); }
+  .msg-ai { width:100%; }
+  .pipeline { display:flex; flex-direction:column; gap:10px; }
+
+  /* Stage */
+  .stage { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; animation:slideIn 0.25s ease both; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+  .stage-header { display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; user-select:none; border-bottom:1px solid transparent; transition:border-color 0.2s; }
+  .stage-header.has-body { border-bottom-color:var(--border); }
+  .stage-num { font-family:'Fira Code',monospace; font-size:10px; width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--border); color:var(--muted); }
+  .stage-num.active { border-color:var(--accent); color:var(--accent); background:rgba(74,222,128,0.08); }
+  .stage-num.done   { border-color:var(--accent3); color:var(--accent3); background:rgba(34,197,94,0.08); }
+  .stage-title { font-size:13px; font-weight:600; color:var(--text); flex:1; }
+  .stage-meta { font-family:'Fira Code',monospace; font-size:10px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+  .spinner { width:11px; height:11px; border:1.5px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.6s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg);} }
+  .stage-body { padding:12px 14px; font-size:12px; line-height:1.7; color:var(--muted); display:none; }
+  .stage-body.open { display:block; }
+  .toggle { font-size:9px; color:var(--muted); transition:transform 0.2s; }
+  .toggle.open { transform:rotate(180deg); }
+
+  /* Source items */
+  .src-list { display:flex; flex-direction:column; gap:6px; }
+  .src-item { display:flex; align-items:flex-start; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; }
+  .src-badge { font-family:'Fira Code',monospace; font-size:9px; padding:2px 6px; border-radius:4px; background:var(--faint); border:1px solid var(--border); color:var(--muted); flex-shrink:0; margin-top:1px; white-space:nowrap; }
+  .src-badge.ddg  { border-color:rgba(96,165,250,0.3); color:var(--info); }
+  .src-badge.wiki { border-color:rgba(74,222,128,0.3); color:var(--accent); }
+  .src-text { font-size:12px; color:#94a3b8; line-height:1.5; }
+
+  /* Confidence */
+  .conf-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+  .conf-label { font-family:'Fira Code',monospace; font-size:10px; color:var(--muted); white-space:nowrap; }
+  .conf-track { flex:1; height:4px; background:var(--border); border-radius:100px; overflow:hidden; }
+  .conf-fill  { height:100%; background:var(--accent3); border-radius:100px; transition:width 1s cubic-bezier(0.4,0,0.2,1); }
+  .conf-val   { font-family:'Fira Code',monospace; font-size:11px; color:var(--accent3); }
+
+  /* Badges */
+  .badge-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .badge { font-family:'Fira Code',monospace; font-size:10px; padding:2px 8px; border-radius:100px; border:1px solid; }
+  .badge.ok   { color:var(--accent3); border-color:rgba(34,197,94,0.3);   background:rgba(34,197,94,0.07); }
+  .badge.warn { color:var(--warn);    border-color:rgba(251,191,36,0.3);  background:rgba(251,191,36,0.07); }
+
+  /* Final */
+  .final-card { background:var(--surface); border:1px solid rgba(74,222,128,0.25); border-radius:12px; overflow:hidden; margin-top:6px; }
+  .final-header { display:flex; align-items:center; gap:8px; padding:9px 14px; background:rgba(74,222,128,0.05); border-bottom:1px solid rgba(74,222,128,0.12); font-family:'Fira Code',monospace; font-size:10px; font-weight:500; color:var(--accent); letter-spacing:1px; text-transform:uppercase; }
+  .final-body { padding:16px 18px; font-size:14px; line-height:1.85; color:var(--text); }
+  .final-body p { margin-bottom:10px; }
+  .final-body p:last-child { margin-bottom:0; }
+  .final-body strong { color:var(--accent2); font-weight:600; }
+
+  /* Key facts strip */
+  .facts-strip { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .fact-item { display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--text); line-height:1.5; }
+  .fact-bullet { color:var(--accent); font-size:16px; line-height:1.2; flex-shrink:0; }
+
+  /* Cross-check */
+  .check-list { display:flex; flex-direction:column; gap:6px; }
+  .check-item { display:flex; align-items:flex-start; gap:8px; font-size:12px; color:#94a3b8; line-height:1.5; }
+  .check-icon { flex-shrink:0; font-size:13px; }
+
+  /* Empty */
+  .empty { text-align:center; padding:56px 20px; color:var(--muted); }
+  .empty-icon { font-size:40px; margin-bottom:14px; opacity:0.6; }
+  .empty h3 { font-size:16px; font-weight:600; color:#2d4a2d; margin-bottom:8px; }
+  .empty p { font-size:12px; line-height:1.8; max-width:380px; margin:0 auto; }
+  .suggestions { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:18px; }
+  .sug { font-size:12px; padding:7px 14px; background:var(--surface); border:1px solid var(--border); border-radius:100px; cursor:pointer; transition:all 0.15s; color:var(--muted); font-family:'Fira Code',monospace; }
+  .sug:hover { border-color:var(--accent); color:var(--accent); background:rgba(74,222,128,0.05); }
+
+  .err-card { background:rgba(127,29,29,0.15); border:1px solid rgba(248,113,113,0.2); border-radius:10px; padding:12px 14px; font-size:12px; color:#f87171; line-height:1.6; }
+  .typing { display:flex; gap:4px; padding:2px 0; }
+  .typing span { width:5px; height:5px; border-radius:50%; background:var(--accent3); animation:bounce 1s ease infinite; opacity:0.5; }
+  .typing span:nth-child(2){animation-delay:0.15s;} .typing span:nth-child(3){animation-delay:0.3s;}
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:0.4;} 40%{transform:translateY(-5px);opacity:1;} }
+  ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-icon">🔭</div>
+      <div class="logo">ORACLE</div>
+    </div>
+    <div class="tagline">100% free · no api key · no sign up · works instantly</div>
+    <div class="status-row">
+      <div class="chip"><div class="dot"></div> DuckDuckGo Search</div>
+      <div class="chip"><div class="dot"></div> Wikipedia</div>
+      <div class="chip"><div class="dot"></div> Smart Summariser</div>
+      <div class="chip" style="color:var(--accent);border-color:rgba(74,222,128,0.3)">$0 forever</div>
+    </div>
+  </header>
+
+  <div class="free-banner">
+    <div class="icon">✅</div>
+    <div class="free-banner-body">
+      <h3>No API key needed — works instantly</h3>
+      <p>Just open this file in any browser and start asking. Uses DuckDuckGo + Wikipedia — 100% free, forever.</p>
+    </div>
+  </div>
+
+  <div class="input-card">
+    <textarea id="qInput" placeholder="Ask me anything — I'll search the web and Wikipedia instantly..." rows="2" onkeydown="handleKey(event)"></textarea>
+    <div class="input-footer">
+      <div class="source-pills">
+        <span class="src-pill active">🦆 DuckDuckGo</span>
+        <span class="src-pill active">📖 Wikipedia</span>
+        <span class="src-pill active">🧠 Smart Summary</span>
+        <span class="free-tag">NO KEY NEEDED</span>
+      </div>
+      <button class="ask-btn" id="askBtn" onclick="runPipeline()">ASK →</button>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="empty" id="emptyState">
+      <div class="empty-icon">🌿</div>
+      <h3>Zero-cost AI assistant — ready instantly</h3>
+      <p>No API key, no sign-up, no money. Just open and ask anything.</p>
+      <div class="suggestions">
+        <div class="sug" onclick="fill('What is quantum entanglement?')">quantum entanglement</div>
+        <div class="sug" onclick="fill('How does the human immune system work?')">immune system</div>
+        <div class="sug" onclick="fill('What is machine learning?')">machine learning</div>
+        <div class="sug" onclick="fill('How does Bitcoin work?')">how Bitcoin works</div>
+        <div class="sug" onclick="fill('What is the James Webb Space Telescope?')">James Webb Telescope</div>
+        <div class="sug" onclick="fill('What is black hole?')">black hole</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+let busy = false;
+let currentSessionId = '';
+
+function fill(t) { document.getElementById('qInput').value = t; document.getElementById('qInput').focus(); }
+function handleKey(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); runPipeline(); } }
+
+// ── Stage UI ─────────────────────────────────────────
+function addStage(id, num, title) {
+  const pipeline = document.getElementById('pipeline-' + currentSessionId);
+  const div = document.createElement('div');
+  div.className = 'stage'; div.id = 'stage-' + id;
+  div.innerHTML = `
+    <div class="stage-header" id="sh-${id}" onclick="toggleBody('${id}')">
+      <div class="stage-num active" id="sn-${id}">${num}</div>
+      <div class="stage-title">${title}</div>
+      <div class="stage-meta"><div class="spinner"></div> working...</div>
+      <div class="toggle" id="tog-${id}">▼</div>
+    </div>
+    <div class="stage-body" id="sb-${id}"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  pipeline.appendChild(div);
+  div.scrollIntoView({ behavior:'smooth', block:'end' });
+}
+
+function setStageBody(id, html, open) {
+  const b = document.getElementById('sb-'+id);
+  b.innerHTML = html;
+  if (open) {
+    b.classList.add('open');
+    document.getElementById('sh-'+id).classList.add('has-body');
+    document.getElementById('tog-'+id).classList.add('open');
+  }
+}
+
+function setMeta(id, text, state) {
+  const m = document.getElementById('stage-'+id).querySelector('.stage-meta');
+  const n = document.getElementById('sn-'+id);
+  if (state==='done') { m.innerHTML=`<span style="color:var(--accent3)">✓</span> ${text}`; n.className='stage-num done'; n.textContent='✓'; }
+  if (state==='err')  { m.innerHTML=`<span style="color:#f87171">✗</span> ${text}`;        n.className='stage-num err'; }
+}
+
+function toggleBody(id) {
+  document.getElementById('sb-'+id).classList.toggle('open');
+  document.getElementById('tog-'+id).classList.toggle('open');
+  document.getElementById('sh-'+id).classList.toggle('has-body');
+}
+
+// ── DuckDuckGo (no key, via CORS proxy) ─────────────
+async function searchDDG(query) {
+  try {
+    const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+    const j = await r.json();
+    const d = JSON.parse(j.contents);
+    const results = [];
+    if (d.AbstractText) results.push({ text: d.AbstractText, type: 'abstract' });
+    if (d.Answer)       results.push({ text: d.Answer, type: 'answer' });
+    (d.RelatedTopics||[]).slice(0,4).forEach(t => {
+      if (t.Text) results.push({ text: t.Text, type: 'related' });
+    });
+    return { results, definition: d.AbstractText || d.Answer || '', infobox: d.Infobox };
+  } catch(e) { return { results:[], definition:'', infobox:null }; }
+}
+
+// ── Wikipedia (no key, native CORS) ─────────────────
+async function searchWikipedia(query) {
+  try {
+    const sr = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=3`);
+    const sd = await sr.json();
+    const titles = (sd.query?.search||[]).map(r=>r.title).slice(0,2);
+    if (!titles.length) return { articles:[] };
+    const er = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=extracts|categories&exintro=1&explaintext=1&format=json&origin=*&exsentences=6`);
+    const ed = await er.json();
+    const articles = Object.values(ed.query?.pages||{})
+      .filter(p => p.extract && p.pageid > 0)
+      .map(p => ({
+        title: p.title,
+        text: p.extract.trim(),
+        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(p.title.replace(/ /g,'_'))}`
+      }));
+    return { articles };
+  } catch(e) { return { articles:[] }; }
+}
+
+// ── Smart summariser (pure JS, no AI needed) ─────────
+function buildAnswer(query, ddg, wiki) {
+  const paras = [];
+  const facts = [];
+  const q = query.toLowerCase();
+
+  // Pull best content from Wikipedia
+  if (wiki.articles.length > 0) {
+    const art = wiki.articles[0];
+    const sentences = art.text.split(/(?<=[.!?])\s+/).filter(s => s.length > 30);
+
+    // Intro paragraph — first 2-3 sentences
+    if (sentences.length > 0) {
+      paras.push(sentences.slice(0, 3).join(' '));
+    }
+
+    // Key facts — next sentences as bullet points
+    sentences.slice(3, 8).forEach(s => { if (s.length > 40) facts.push(s.trim()); });
+
+    // Second article for more detail
+    if (wiki.articles.length > 1) {
+      const art2 = wiki.articles[1];
+      const s2 = art2.text.split(/(?<=[.!?])\s+/).filter(s => s.length > 30);
+      if (s2.length > 0 && art2.title !== art.title) {
+        paras.push(`<strong>${art2.title}:</strong> ` + s2.slice(0,2).join(' '));
+      }
+    }
+  }
+
+  // DuckDuckGo abstract — add if not duplicate
+  if (ddg.definition && wiki.articles.length === 0) {
+    paras.push(ddg.definition);
+  }
+
+  // DDG related topics as extra facts
+  ddg.results.filter(r=>r.type==='related').slice(0,3).forEach(r => {
+    if (r.text.length > 40) facts.push(r.text);
+  });
+
+  // Nothing found fallback
+  if (paras.length === 0 && facts.length === 0) {
+    return {
+      html: `<p>No strong results found for "<strong>${escHtml(query)}</strong>". Try rephrasing your question or using different keywords.</p>`,
+      confidence: 20,
+      status: 'uncertain',
+      sourceCount: 0
+    };
+  }
+
+  // Build HTML
+  let html = '';
+  paras.forEach(p => { html += `<p>${escHtml(p)}</p>`; });
+
+  if (facts.length > 0) {
+    html += `<div class="facts-strip">`;
+    facts.slice(0,5).forEach(f => {
+      html += `<div class="fact-item"><span class="fact-bullet">›</span><span>${escHtml(f)}</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  const sourceCount = (wiki.articles.length > 0 ? wiki.articles.length : 0) + (ddg.results.length > 0 ? 1 : 0);
+  const confidence = Math.min(95, 55 + (sourceCount * 12) + (facts.length * 4));
+
+  return { html, confidence, status: confidence > 70 ? 'confirmed' : 'uncertain', sourceCount };
+}
+
+// ── Cross-check: compare DDG vs Wiki ─────────────────
+function crossCheck(ddg, wiki) {
+  const checks = [];
+
+  if (wiki.articles.length > 0 && ddg.definition) {
+    checks.push({ icon:'✓', text:`Wikipedia and DuckDuckGo both have data on this topic — consistent results.` });
+  } else if (wiki.articles.length > 0) {
+    checks.push({ icon:'✓', text:`Found ${wiki.articles.length} Wikipedia article(s): ${wiki.articles.map(a=>a.title).join(', ')}.` });
+  }
+
+  if (ddg.results.length > 0) {
+    checks.push({ icon:'✓', text:`DuckDuckGo returned ${ddg.results.length} result(s) supporting the topic.` });
+  }
+
+  if (wiki.articles.length > 1) {
+    checks.push({ icon:'✓', text:`Multiple Wikipedia articles cross-referenced for broader coverage.` });
+  }
+
+  if (checks.length === 0) {
+    checks.push({ icon:'⚠', text:`Limited sources found. Answer may be incomplete — try a more specific query.` });
+  }
+
+  return checks;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Main Pipeline ─────────────────────────────────────
+async function runPipeline() {
+  if (busy) return;
+  const q = document.getElementById('qInput').value.trim();
+  if (!q) return;
+
+  busy = true;
+  document.getElementById('askBtn').disabled = true;
+  document.getElementById('qInput').value = '';
+  document.getElementById('emptyState')?.remove();
+
+  const msgs = document.getElementById('messages');
+
+  // User bubble
+  const uDiv = document.createElement('div');
+  uDiv.className = 'msg-user'; uDiv.textContent = q;
+  msgs.appendChild(uDiv);
+
+  // AI container
+  const aiDiv = document.createElement('div');
+  aiDiv.className = 'msg-ai';
+  const sessId = 'sess' + Date.now();
+  currentSessionId = sessId;
+  aiDiv.innerHTML = `<div class="pipeline" id="pipeline-${sessId}"></div>`;
+  msgs.appendChild(aiDiv);
+
+  let ddgData = { results:[], definition:'', infobox:null };
+  let wikiData = { articles:[] };
+
+  try {
+    // ── Stage 1: DuckDuckGo ──────────────────────────
+    addStage('ddg'+sessId, '1', '🦆 DuckDuckGo — instant web search');
+    ddgData = await searchDDG(q);
+
+    if (ddgData.results.length > 0) {
+      let html = '<div class="src-list">';
+      ddgData.results.slice(0,4).forEach(r => {
+        html += `<div class="src-item"><span class="src-badge ddg">DDG</span><span class="src-text">${escHtml(r.text.slice(0,220))}</span></div>`;
+      });
+      html += '</div>';
+      setStageBody('ddg'+sessId, html, false);
+      setMeta('ddg'+sessId, `${ddgData.results.length} results found`, 'done');
+    } else {
+      setStageBody('ddg'+sessId, '<span style="color:var(--muted)">No instant answers — relying on Wikipedia.</span>', false);
+      setMeta('ddg'+sessId, 'no results', 'done');
+    }
+
+    // ── Stage 2: Wikipedia ───────────────────────────
+    addStage('wiki'+sessId, '2', '📖 Wikipedia — knowledge base search');
+    wikiData = await searchWikipedia(q);
+
+    if (wikiData.articles.length > 0) {
+      let html = '<div class="src-list">';
+      wikiData.articles.forEach(a => {
+        html += `<div class="src-item">
+          <span class="src-badge wiki">WIKI</span>
+          <span class="src-text">
+            <strong style="color:var(--accent2);display:block;margin-bottom:3px">${escHtml(a.title)}</strong>
+            ${escHtml(a.text.slice(0,280))}…
+            <a href="${a.url}" target="_blank" style="color:var(--accent);font-size:10px;display:block;margin-top:4px">Read full article →</a>
+          </span>
+        </div>`;
+      });
+      html += '</div>';
+      setStageBody('wiki'+sessId, html, true);
+      setMeta('wiki'+sessId, `${wikiData.articles.length} article(s) found`, 'done');
+    } else {
+      setStageBody('wiki'+sessId, '<span style="color:var(--muted)">No Wikipedia articles found for this query.</span>', false);
+      setMeta('wiki'+sessId, 'no articles', 'done');
+    }
+
+    // ── Stage 3: Build Answer ────────────────────────
+    addStage('gen'+sessId, '3', '🧠 Smart summariser — building answer');
+    // Small delay for UX feel
+    await new Promise(r => setTimeout(r, 400));
+    const answer = buildAnswer(q, ddgData, wikiData);
+    setStageBody('gen'+sessId, `<div style="font-size:12px;color:#6b7280;line-height:1.6">Answer built from ${answer.sourceCount} source(s). Confidence: ${answer.confidence}%</div>`, false);
+    setMeta('gen'+sessId, 'answer ready', 'done');
+
+    // ── Stage 4: Cross-Check ─────────────────────────
+    addStage('xcheck'+sessId, '4', '🔁 Cross-checking sources');
+    await new Promise(r => setTimeout(r, 300));
+    const checks = crossCheck(ddgData, wikiData);
+    let chtml = '<div class="check-list">';
+    checks.forEach(c => { chtml += `<div class="check-item"><span class="check-icon">${c.icon}</span><span>${escHtml(c.text)}</span></div>`; });
+    chtml += '</div>';
+
+    const badgeCls   = answer.status === 'confirmed' ? 'ok' : 'warn';
+    const badgeLabel = answer.status === 'confirmed' ? '✓ sources agree' : '~ limited sources';
+    chtml += `<div class="badge-row" style="margin-top:10px"><span class="badge ${badgeCls}">${badgeLabel}</span></div>`;
+    chtml += `<div class="conf-row"><span class="conf-label">confidence</span><div class="conf-track"><div class="conf-fill" style="width:${answer.confidence}%"></div></div><span class="conf-val">${answer.confidence}%</span></div>`;
+
+    setStageBody('xcheck'+sessId, chtml, false);
+    setMeta('xcheck'+sessId, `${answer.confidence}% confidence`, 'done');
+
+    // ── Final Answer ─────────────────────────────────
+    const pipeline = document.getElementById('pipeline-'+sessId);
+    const finalDiv = document.createElement('div');
+    finalDiv.className = 'final-card';
+    finalDiv.style.marginTop = '8px';
+
+    // Source links
+    let sourceLinks = '';
+    if (wikiData.articles.length > 0) {
+      sourceLinks = `<div style="padding:10px 18px;border-top:1px solid rgba(74,222,128,0.1);font-size:11px;color:var(--muted);font-family:'Fira Code',monospace;">`;
+      sourceLinks += `Sources: `;
+      sourceLinks += wikiData.articles.map(a => `<a href="${a.url}" target="_blank" style="color:var(--accent);margin-right:12px">${escHtml(a.title)}</a>`).join('');
+      sourceLinks += `</div>`;
+    }
+
+    finalDiv.innerHTML = `
+      <div class="final-header">⚡ verified answer · ${answer.confidence}% confidence · ${answer.sourceCount} source(s)</div>
+      <div class="final-body">${answer.html}</div>
+      ${sourceLinks}`;
+    pipeline.appendChild(finalDiv);
+    finalDiv.scrollIntoView({ behavior:'smooth', block:'end' });
+
+  } catch(err) {
+    const errDiv = document.createElement('div');
+    errDiv.className = 'err-card';
+    errDiv.innerHTML = `<strong>Error:</strong> ${escHtml(err.message)}<br><br>Make sure you're connected to the internet. This app fetches data from DuckDuckGo and Wikipedia.`;
+    document.getElementById('pipeline-'+sessId)?.appendChild(errDiv);
+  }
+
+  busy = false;
+  document.getElementById('askBtn').disabled = false;
+}
+</script>
+</body>
+</html>

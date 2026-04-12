@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEXUS</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:440px; background:#020817; font-family:'Segoe UI',system-ui,sans-serif; color:#e2f4f8; }
+  body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 80% 60% at 20% 0%,rgba(34,211,238,0.07) 0%,transparent 60%); pointer-events:none; z-index:0; }
+  .wrap { position:relative; z-index:1; padding:14px; }
+  .header { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .logo { font-size:16px; font-weight:800; letter-spacing:3px; background:linear-gradient(135deg,#22d3ee,#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .tagline { font-size:10px; color:#2e5a6a; margin-left:auto; }
+  .tabs { display:flex; background:rgba(34,211,238,0.05); border:1px solid rgba(34,211,238,0.12); border-radius:10px; padding:3px; gap:3px; margin-bottom:12px; }
+  .tab-btn { flex:1; padding:7px; font-size:11px; font-weight:600; border:none; border-radius:7px; cursor:pointer; background:transparent; color:#3a6a7a; transition:all 0.2s; }
+  .tab-btn.on { background:linear-gradient(135deg,#0e7490,#22d3ee); color:#000; }
+  .pg { display:none; }
+  .pg.on { display:block; }
+  .ibox { display:flex; align-items:center; gap:8px; background:rgba(34,211,238,0.06); border:1px solid rgba(34,211,238,0.2); border-radius:11px; padding:10px 13px; }
+  .ibox:focus-within { border-color:#22d3ee; box-shadow:0 0 0 1px rgba(34,211,238,0.12); }
+  .ibox input { flex:1; background:transparent; border:none; outline:none; color:#e2f4f8; font-size:13px; }
+  .ibox input::placeholder { color:#2e5a6a; }
+  .kbd { font-size:10px; color:#22d3ee; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.2); border-radius:4px; padding:2px 6px; flex-shrink:0; }
+  .msg { margin-top:9px; padding:10px 13px; border-radius:9px; font-size:12px; line-height:1.6; display:none; }
+  .msg.ok  { display:block; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.2); color:#22d3ee; }
+  .msg.err { display:block; background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.2); color:#f87171; }
+  .msg.ans { display:block; background:rgba(6,20,50,0.8); border:1px solid rgba(34,211,238,0.15); color:#e2f4f8; max-height:180px; overflow-y:auto; }
+  .spin-row { display:none; align-items:center; gap:8px; margin-top:9px; font-size:11px; color:#2e5a6a; }
+  .spin-row.on { display:flex; }
+  .spin { width:12px; height:12px; border:2px solid rgba(34,211,238,0.15); border-top-color:#22d3ee; border-radius:50%; animation:rot 0.6s linear infinite; }
+  @keyframes rot { to{transform:rotate(360deg);} }
+  .lbl { font-size:10px; color:#2e5a6a; margin:11px 0 6px; letter-spacing:1px; text-transform:uppercase; display:flex; justify-content:space-between; }
+  .lbl button { font-size:10px; color:#2e5a6a; background:none; border:none; cursor:pointer; padding:0; }
+  .lbl button:hover { color:#f87171; }
+  .qgrid { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+  .qbtn { background:rgba(34,211,238,0.04); border:1px solid rgba(34,211,238,0.1); border-radius:7px; padding:6px 9px; font-size:11px; color:#7eb8c8; cursor:pointer; text-align:left; transition:all 0.15s; }
+  .qbtn:hover { border-color:rgba(34,211,238,0.35); color:#22d3ee; background:rgba(34,211,238,0.07); }
+  .hlist { display:flex; flex-direction:column; gap:4px; }
+  .hitem { font-size:11px; color:#4a7a8a; padding:5px 9px; background:rgba(34,211,238,0.03); border:1px solid rgba(34,211,238,0.07); border-radius:6px; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transition:all 0.15s; }
+  .hitem:hover { border-color:rgba(34,211,238,0.25); color:#22d3ee; }
+  .sbox { background:rgba(34,211,238,0.04); border:1px solid rgba(34,211,238,0.12); border-radius:10px; padding:13px; margin-bottom:10px; }
+  .stitle { font-size:12px; font-weight:600; color:#22d3ee; margin-bottom:6px; }
+  .cmds { font-size:11px; color:#64748b; line-height:2; }
+  .cmds span { color:#22d3ee; }
+  .foot { display:flex; justify-content:space-between; margin-top:12px; padding-top:10px; border-top:1px solid rgba(34,211,238,0.07); font-size:10px; color:#1e3a4a; }
+  .foot a { color:#22d3ee; text-decoration:none; opacity:0.5; }
+  .foot a:hover { opacity:1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <span class="logo">NEXUS</span>
+    <span class="tagline">AI Browser Assistant</span>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn on" id="t-cmd">⚡ Command</button>
+    <button class="tab-btn"   id="t-set">⚙️ Settings</button>
+  </div>
+
+  <!-- Command page -->
+  <div class="pg on" id="pg-cmd">
+    <div class="ibox">
+      <span>⚡</span>
+      <input id="cmdIn" type="text" placeholder="open youtube · play cricket · ask anything..." autocomplete="off"/>
+      <span class="kbd">Enter</span>
+    </div>
+    <div class="spin-row" id="spin"><div class="spin"></div><span id="spinTxt">Working...</span></div>
+    <div class="msg" id="msg"></div>
+    <div class="lbl"><span>Quick commands</span></div>
+    <div class="qgrid">
+      <button class="qbtn" onclick="run('open youtube')">📺 open youtube</button>
+      <button class="qbtn" onclick="run('open gmail')">📧 open gmail</button>
+      <button class="qbtn" onclick="run('open github')">💻 open github</button>
+      <button class="qbtn" onclick="run('open whatsapp')">💬 open whatsapp</button>
+      <button class="qbtn" onclick="run('search latest news')">📰 latest news</button>
+      <button class="qbtn" onclick="run('open nexus')">🔭 open nexus</button>
+    </div>
+    <div id="hSec" style="display:none">
+      <div class="lbl"><span>Recent</span><button onclick="clearHist()">clear</button></div>
+      <div class="hlist" id="hList"></div>
+    </div>
+  </div>
+
+  <!-- Settings page -->
+  <div class="pg" id="pg-set">
+    <div class="sbox">
+      <div class="stitle">🔑 Groq API Key</div>
+      <div class="cmds">Key is hardcoded in popup.js — no need to enter it here.<br>
+      To change it, open <span>popup.js</span> → edit line 2.</div>
+    </div>
+    <div class="sbox">
+      <div class="stitle">📋 Commands</div>
+      <div class="cmds">
+        <span>open youtube / gmail / github / whatsapp</span><br>
+        <span>play cricket highlights</span> — searches YouTube<br>
+        <span>search python tutorial</span> — Google search<br>
+        <span>close tab / new tab / go back / reload</span><br>
+        <span>what is AI?</span> — AI answers instantly
+      </div>
+    </div>
+    <div class="sbox" style="margin-bottom:0">
+      <div class="stitle">⌨️ Shortcut</div>
+      <div class="cmds">Press <span>Ctrl + Shift + N</span> anywhere to open NEXUS.</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Ctrl+Shift+N · Enter to run</span>
+    <a href="http://localhost:5000" target="_blank">nexus app →</a>
+  </div>
+</div>
+<script src="popup.js"></script>
+</body>
+</html>

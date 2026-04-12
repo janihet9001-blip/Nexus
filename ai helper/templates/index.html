@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS — AI Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">History</span>
+      <span class="sidebar-count" id="historyCount">0 chats</span>
+    </div>
+    <div class="sidebar-search">
+      <input class="search-input" id="searchInput"
+        placeholder="Search history..."
+        oninput="filterHistory()"/>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty">No history yet.<br>Ask your first question!</div>
+    </div>
+    <div class="sidebar-footer">
+      <button class="clear-btn" onclick="clearAll()">Clear all history</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── Main ── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" onclick="toggleSidebar()">☰ History</button>
+        <span class="topbar-logo">NEXUS</span>
+        <span class="topbar-tag">AI Assistant</span>
+      </div>
+      <div class="topbar-right">
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="btnQA"
+            onclick="switchMode('qa')">🔍 Q&A</button>
+          <button class="mode-btn" id="btnChat"
+            onclick="switchMode('chat')">💬 Chat</button>
+        </div>
+        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
+        <button class="icon-btn" onclick="newChat()" title="New chat">✏️</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Language + Mode bar -->
+      <div class="lang-bar">
+        <span class="lang-label">🌐 Language:</span>
+        <select class="lang-select" id="langSelect">
+          {% for code, name in languages.items() %}
+          <option value="{{ code }}">{{ name }}</option>
+          {% endfor %}
+        </select>
+        <span class="lang-flag" id="langBadge">EN</span>
+        <div class="mode-indicator" id="modeIndicator">
+          <span class="mode-dot qa-dot"></span>
+          <span id="modeLabel">Q&A — searches web + AI answer</span>
+        </div>
+      </div>
+
+      <!-- Chat banner -->
+      <div class="chat-banner" id="chatBanner" style="display:none">
+        <div class="chat-banner-icon">💬</div>
+        <div class="chat-banner-text">
+          <strong>Chat Mode</strong> — full conversation memory.
+          Ask follow-ups, dig deeper, change topics freely.
+        </div>
+        <button class="chat-banner-clear" onclick="clearChatHistory()">↺ New chat</button>
+      </div>
+
+      <!-- Input -->
+      <div class="input-card">
+        <textarea id="qInput"
+          placeholder="Ask anything — or click the mic to speak..."
+          rows="2"
+          onkeydown="handleKey(event)"></textarea>
+        <div class="input-footer">
+          <div class="source-pills" id="sourcePills">
+            <span class="src-pill active">🦆 DDG</span>
+            <span class="src-pill active">📖 Wikipedia</span>
+            <span class="src-pill active">🦙 Llama 3</span>
+            <span class="free-tag">FREE</span>
+          </div>
+          <div class="input-actions">
+            <button class="voice-btn" id="voiceBtn"
+              onclick="toggleVoice()" title="Speak your question">🎤</button>
+            <button class="ask-btn" id="askBtn" onclick="handleAsk()">ASK →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages" id="messages">
+        <div class="empty" id="emptyState">
+          <h3>What would you like to know?</h3>
+          <p>
+            <strong>Q&A mode</strong> searches the web and verifies answers.<br>
+            <strong>Chat mode</strong> gives you a full AI conversation with memory.
+          </p>
+          <div class="suggestions">
+            <div class="sug" onclick="fill('What is quantum entanglement?')">quantum entanglement</div>
+            <div class="sug" onclick="fill('How does the immune system work?')">immune system</div>
+            <div class="sug" onclick="fill('What is machine learning?')">machine learning</div>
+            <div class="sug" onclick="fill('How does Bitcoin work?')">Bitcoin</div>
+            <div class="sug" onclick="fill('Explain black holes simply')">black holes</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-wrap" id="shareModal">
+  <div class="modal">
+    <div class="modal-title">Share this answer</div>
+    <div class="modal-sub">Copy and paste anywhere</div>
+    <textarea class="share-textarea" id="shareText" readonly></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeShare()">Close</button>
+      <button class="modal-btn primary" onclick="copyShareText()">📋 Copy</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+<script>
+  document.getElementById('langSelect').addEventListener('change', function() {
+    document.getElementById('langBadge').textContent = this.value.toUpperCase();
+    recognition = null;
+  });
+</script>
+</body>
+</html>

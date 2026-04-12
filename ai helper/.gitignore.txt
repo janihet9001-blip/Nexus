@@ -1,0 +1,15 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+Lib/
+Scripts/
+
+# Large files
+*.onnx
+*.zip
+
+# OS files
+.DS_Store
