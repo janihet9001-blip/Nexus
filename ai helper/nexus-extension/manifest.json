@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
   "name": "NEXUS AI Assistant",
-  "version": "1.0",
-  "description": "Your personal AI assistant in the browser. Open tabs, search, play YouTube, ask questions — all by typing.",
+  "version": "2.0",
+  "description": "Control your browser with voice or text. Open Claude with a prompt, play YouTube, set volume & brightness — all by speaking or typing.",
 
   "permissions": [
     "tabs",
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "offscreen"
   ],
 
   "host_permissions": [
@@ -43,12 +44,12 @@
     "16":  "icons/icon16.png",
     "48":  "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
-  ,
-"web_accessible_resources": [
-  {
-    "resources": ["config.js"],
-    "matches": ["<all_urls>"]
-  }
-]
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["config.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

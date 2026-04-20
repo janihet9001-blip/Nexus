@@ -4,111 +4,343 @@
 <meta charset="UTF-8">
 <title>NEXUS</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { width:440px; background:#020817; font-family:'Segoe UI',system-ui,sans-serif; color:#e2f4f8; }
-  body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 80% 60% at 20% 0%,rgba(34,211,238,0.07) 0%,transparent 60%); pointer-events:none; z-index:0; }
-  .wrap { position:relative; z-index:1; padding:14px; }
-  .header { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
-  .logo { font-size:16px; font-weight:800; letter-spacing:3px; background:linear-gradient(135deg,#22d3ee,#818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  .tagline { font-size:10px; color:#2e5a6a; margin-left:auto; }
-  .tabs { display:flex; background:rgba(34,211,238,0.05); border:1px solid rgba(34,211,238,0.12); border-radius:10px; padding:3px; gap:3px; margin-bottom:12px; }
-  .tab-btn { flex:1; padding:7px; font-size:11px; font-weight:600; border:none; border-radius:7px; cursor:pointer; background:transparent; color:#3a6a7a; transition:all 0.2s; }
-  .tab-btn.on { background:linear-gradient(135deg,#0e7490,#22d3ee); color:#000; }
-  .pg { display:none; }
-  .pg.on { display:block; }
-  .ibox { display:flex; align-items:center; gap:8px; background:rgba(34,211,238,0.06); border:1px solid rgba(34,211,238,0.2); border-radius:11px; padding:10px 13px; }
-  .ibox:focus-within { border-color:#22d3ee; box-shadow:0 0 0 1px rgba(34,211,238,0.12); }
-  .ibox input { flex:1; background:transparent; border:none; outline:none; color:#e2f4f8; font-size:13px; }
-  .ibox input::placeholder { color:#2e5a6a; }
-  .kbd { font-size:10px; color:#22d3ee; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.2); border-radius:4px; padding:2px 6px; flex-shrink:0; }
-  .msg { margin-top:9px; padding:10px 13px; border-radius:9px; font-size:12px; line-height:1.6; display:none; }
-  .msg.ok  { display:block; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.2); color:#22d3ee; }
-  .msg.err { display:block; background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.2); color:#f87171; }
-  .msg.ans { display:block; background:rgba(6,20,50,0.8); border:1px solid rgba(34,211,238,0.15); color:#e2f4f8; max-height:180px; overflow-y:auto; }
-  .spin-row { display:none; align-items:center; gap:8px; margin-top:9px; font-size:11px; color:#2e5a6a; }
-  .spin-row.on { display:flex; }
-  .spin { width:12px; height:12px; border:2px solid rgba(34,211,238,0.15); border-top-color:#22d3ee; border-radius:50%; animation:rot 0.6s linear infinite; }
-  @keyframes rot { to{transform:rotate(360deg);} }
-  .lbl { font-size:10px; color:#2e5a6a; margin:11px 0 6px; letter-spacing:1px; text-transform:uppercase; display:flex; justify-content:space-between; }
-  .lbl button { font-size:10px; color:#2e5a6a; background:none; border:none; cursor:pointer; padding:0; }
-  .lbl button:hover { color:#f87171; }
-  .qgrid { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
-  .qbtn { background:rgba(34,211,238,0.04); border:1px solid rgba(34,211,238,0.1); border-radius:7px; padding:6px 9px; font-size:11px; color:#7eb8c8; cursor:pointer; text-align:left; transition:all 0.15s; }
-  .qbtn:hover { border-color:rgba(34,211,238,0.35); color:#22d3ee; background:rgba(34,211,238,0.07); }
-  .hlist { display:flex; flex-direction:column; gap:4px; }
-  .hitem { font-size:11px; color:#4a7a8a; padding:5px 9px; background:rgba(34,211,238,0.03); border:1px solid rgba(34,211,238,0.07); border-radius:6px; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transition:all 0.15s; }
-  .hitem:hover { border-color:rgba(34,211,238,0.25); color:#22d3ee; }
-  .sbox { background:rgba(34,211,238,0.04); border:1px solid rgba(34,211,238,0.12); border-radius:10px; padding:13px; margin-bottom:10px; }
-  .stitle { font-size:12px; font-weight:600; color:#22d3ee; margin-bottom:6px; }
-  .cmds { font-size:11px; color:#64748b; line-height:2; }
-  .cmds span { color:#22d3ee; }
-  .foot { display:flex; justify-content:space-between; margin-top:12px; padding-top:10px; border-top:1px solid rgba(34,211,238,0.07); font-size:10px; color:#1e3a4a; }
-  .foot a { color:#22d3ee; text-decoration:none; opacity:0.5; }
-  .foot a:hover { opacity:1; }
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  width: 460px;
+  min-height: 480px;
+  background: #07080f;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #dce8f0;
+  overflow-x: hidden;
+}
+
+/* Ambient glow */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 40% at 15% 0%, rgba(0,210,170,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 30% at 85% 100%, rgba(91,110,245,0.07) 0%, transparent 55%);
+  pointer-events: none; z-index: 0;
+}
+
+.wrap { position: relative; z-index: 1; padding: 16px; }
+
+/* ── Header ── */
+.header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0,210,170,0.08);
+}
+.nx-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg,rgba(0,210,170,0.18),rgba(91,110,245,0.18));
+  border: 1px solid rgba(0,210,170,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.nx-name { font-size: 15px; font-weight: 700; letter-spacing: 2.5px;
+  background: linear-gradient(135deg,#00d2aa,#818cf8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.nx-ver { font-size: 9px; color: #2a5a6a; margin-top: 1px; letter-spacing: 1px; }
+.nx-dot { margin-left: auto; display: flex; align-items: center; gap: 5px; }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: #00d2aa; box-shadow: 0 0 6px #00d2aa; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.live-lbl { font-size: 10px; color: #2a6a5a; letter-spacing: 1px; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex; background: rgba(0,210,170,0.04);
+  border: 1px solid rgba(0,210,170,0.1); border-radius: 10px;
+  padding: 3px; gap: 3px; margin-bottom: 14px;
+}
+.tab-btn {
+  flex: 1; padding: 7px 4px; font-size: 11px; font-weight: 600;
+  border: none; border-radius: 7px; cursor: pointer;
+  background: transparent; color: #3a6a7a; transition: all 0.2s;
+}
+.tab-btn.on { background: linear-gradient(135deg,#0a5f50,#00d2aa); color: #000; }
+
+/* ── Page panels ── */
+.pg { display: none; }
+.pg.on { display: block; }
+
+/* ── Input area ── */
+.input-area {
+  background: rgba(0,210,170,0.05);
+  border: 1px solid rgba(0,210,170,0.18);
+  border-radius: 12px; padding: 11px 13px;
+  display: flex; align-items: center; gap: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 10px;
+}
+.input-area:focus-within {
+  border-color: rgba(0,210,170,0.5);
+  box-shadow: 0 0 0 1px rgba(0,210,170,0.1);
+}
+.input-area input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: #dce8f0; font-size: 13px;
+}
+.input-area input::placeholder { color: #2a5a6a; }
+
+/* ── Voice button ── */
+.btn-mic {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid rgba(0,210,170,0.25); background: rgba(0,210,170,0.06);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 15px; transition: all 0.2s; flex-shrink: 0;
+}
+.btn-mic:hover { border-color: rgba(0,210,170,0.5); background: rgba(0,210,170,0.12); }
+.btn-mic.listening {
+  background: rgba(0,210,170,0.2); border-color: #00d2aa;
+  box-shadow: 0 0 10px rgba(0,210,170,0.3);
+  animation: mic-pulse 0.8s ease-in-out infinite;
+}
+@keyframes mic-pulse { 0%,100%{box-shadow:0 0 8px rgba(0,210,170,0.3)} 50%{box-shadow:0 0 18px rgba(0,210,170,0.6)} }
+
+.btn-run {
+  padding: 0 12px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg,#0a5f50,#00d2aa);
+  border: none; color: #000; font-size: 11px; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+.btn-run:hover { opacity: 0.85; }
+
+/* ── Voice waveform bar ── */
+.voice-bar {
+  display: none; align-items: center; gap: 6px;
+  background: rgba(0,210,170,0.06); border: 1px solid rgba(0,210,170,0.15);
+  border-radius: 9px; padding: 8px 12px; margin-bottom: 10px; font-size: 11px; color: #00d2aa;
+}
+.voice-bar.on { display: flex; }
+.waves { display: flex; align-items: center; gap: 2px; height: 16px; }
+.waves span {
+  width: 3px; border-radius: 2px; background: #00d2aa;
+  animation: wave 0.5s ease-in-out infinite alternate;
+}
+.waves span:nth-child(1){height:5px;animation-delay:0s}
+.waves span:nth-child(2){height:10px;animation-delay:0.1s}
+.waves span:nth-child(3){height:14px;animation-delay:0.2s}
+.waves span:nth-child(4){height:10px;animation-delay:0.3s}
+.waves span:nth-child(5){height:5px;animation-delay:0.4s}
+@keyframes wave { from{transform:scaleY(1)} to{transform:scaleY(1.8)} }
+
+/* ── Spinner ── */
+.spin-row { display: none; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11px; color: #2a6a5a; }
+.spin-row.on { display: flex; }
+.spin { width: 11px; height: 11px; border: 1.5px solid rgba(0,210,170,0.15); border-top-color: #00d2aa; border-radius: 50%; animation: rot 0.6s linear infinite; }
+@keyframes rot { to{transform:rotate(360deg)} }
+
+/* ── Messages ── */
+.msg { margin-bottom: 8px; padding: 10px 13px; border-radius: 9px; font-size: 12px; line-height: 1.65; display: none; }
+.msg.ok  { display: block; background: rgba(0,210,170,0.07);  border: 1px solid rgba(0,210,170,0.18);  color: #00d2aa; }
+.msg.err { display: block; background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.18); color: #f87171; }
+.msg.ans { display: block; background: rgba(6,12,30,0.8); border: 1px solid rgba(0,210,170,0.12); color: #dce8f0; max-height: 160px; overflow-y: auto; white-space: pre-wrap; }
+
+/* ── AI prompt banner ── */
+.ai-prompt-info {
+  display: none; background: rgba(91,110,245,0.08);
+  border: 1px solid rgba(91,110,245,0.2); border-radius: 9px;
+  padding: 9px 12px; margin-bottom: 10px; font-size: 11px; color: #8b9bff;
+  line-height: 1.6;
+}
+.ai-prompt-info.on { display: block; }
+
+/* ── Section label ── */
+.lbl {
+  font-size: 10px; color: #2a5a6a; margin: 10px 0 6px;
+  letter-spacing: 1px; text-transform: uppercase;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.lbl button { font-size: 10px; color: #2a5a6a; background: none; border: none; cursor: pointer; }
+.lbl button:hover { color: #f87171; }
+
+/* ── Quick commands grid ── */
+.qgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.qbtn {
+  background: rgba(0,210,170,0.04); border: 1px solid rgba(0,210,170,0.09);
+  border-radius: 7px; padding: 7px 9px; font-size: 11px; color: #5a8a9a;
+  cursor: pointer; text-align: left; transition: all 0.15s;
+}
+.qbtn:hover { border-color: rgba(0,210,170,0.3); color: #00d2aa; background: rgba(0,210,170,0.07); }
+
+/* ── History ── */
+.hlist { display: flex; flex-direction: column; gap: 4px; }
+.hitem {
+  font-size: 11px; color: #3a6a7a; padding: 5px 9px;
+  background: rgba(0,210,170,0.02); border: 1px solid rgba(0,210,170,0.06);
+  border-radius: 6px; cursor: pointer; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; transition: all 0.15s;
+}
+.hitem:hover { border-color: rgba(0,210,170,0.22); color: #00d2aa; }
+
+/* ── Settings ── */
+.sbox {
+  background: rgba(0,210,170,0.03); border: 1px solid rgba(0,210,170,0.1);
+  border-radius: 10px; padding: 13px; margin-bottom: 10px;
+}
+.stitle { font-size: 12px; font-weight: 600; color: #00d2aa; margin-bottom: 7px; }
+.cmds { font-size: 11px; color: #4a6a7a; line-height: 2.0; }
+.cmds span { color: #00d2aa; }
+.key-input {
+  width: 100%; background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(0,210,170,0.2); border-radius: 7px;
+  padding: 8px 10px; color: #dce8f0; font-size: 12px;
+  outline: none; margin-top: 6px; font-family: monospace;
+}
+.key-input:focus { border-color: rgba(0,210,170,0.5); }
+.btn-save {
+  margin-top: 7px; padding: 6px 14px; background: linear-gradient(135deg,#0a5f50,#00d2aa);
+  border: none; border-radius: 7px; color: #000; font-size: 11px;
+  font-weight: 600; cursor: pointer;
+}
+
+/* ── Footer ── */
+.foot {
+  display: flex; justify-content: space-between; margin-top: 12px;
+  padding-top: 10px; border-top: 1px solid rgba(0,210,170,0.06);
+  font-size: 10px; color: #1a3a4a;
+}
+.foot a { color: #00d2aa; text-decoration: none; opacity: 0.45; }
+.foot a:hover { opacity: 1; }
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <!-- Header -->
   <div class="header">
-    <span class="logo">NEXUS</span>
-    <span class="tagline">AI Browser Assistant</span>
-  </div>
-  <div class="tabs">
-    <button class="tab-btn on" id="t-cmd">⚡ Command</button>
-    <button class="tab-btn"   id="t-set">⚙️ Settings</button>
+    <div class="nx-icon">⬡</div>
+    <div>
+      <div class="nx-name">NEXUS</div>
+      <div class="nx-ver">AI ASSISTANT v2.0</div>
+    </div>
+    <div class="nx-dot">
+      <div class="live-dot"></div>
+      <span class="live-lbl">LIVE</span>
+    </div>
   </div>
 
-  <!-- Command page -->
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn on" id="t-cmd"  onclick="showTab('cmd')">⚡ Command</button>
+    <button class="tab-btn"   id="t-ai"   onclick="showTab('ai')">🤖 Ask AI</button>
+    <button class="tab-btn"   id="t-set"  onclick="showTab('set')">⚙️ Settings</button>
+  </div>
+
+  <!-- ══ COMMAND TAB ══════════════════════════════════════════════════════════ -->
   <div class="pg on" id="pg-cmd">
-    <div class="ibox">
-      <span>⚡</span>
-      <input id="cmdIn" type="text" placeholder="open youtube · play cricket · ask anything..." autocomplete="off"/>
-      <span class="kbd">Enter</span>
+
+    <!-- Input row -->
+    <div class="input-area">
+      <span style="font-size:14px">⚡</span>
+      <input id="cmdIn" type="text"
+        placeholder="open claude and ask about black holes…"
+        autocomplete="off"/>
+      <button class="btn-mic" id="micBtn" title="Voice command (click to speak)">🎤</button>
+      <button class="btn-run" onclick="runCmd()">RUN</button>
     </div>
-    <div class="spin-row" id="spin"><div class="spin"></div><span id="spinTxt">Working...</span></div>
+
+    <!-- Voice listening indicator -->
+    <div class="voice-bar" id="voiceBar">
+      <div class="waves"><span></span><span></span><span></span><span></span><span></span></div>
+      <span id="voiceTxt">Listening… speak your command</span>
+    </div>
+
+    <!-- AI Prompt info (shown when command opens AI site with prompt) -->
+    <div class="ai-prompt-info" id="aiInfo"></div>
+
+    <!-- Spinner -->
+    <div class="spin-row" id="spin"><div class="spin"></div><span id="spinTxt">Working…</span></div>
+
+    <!-- Result message -->
     <div class="msg" id="msg"></div>
+
+    <!-- Quick commands -->
     <div class="lbl"><span>Quick commands</span></div>
     <div class="qgrid">
-      <button class="qbtn" onclick="run('open youtube')">📺 open youtube</button>
-      <button class="qbtn" onclick="run('open gmail')">📧 open gmail</button>
-      <button class="qbtn" onclick="run('open github')">💻 open github</button>
-      <button class="qbtn" onclick="run('open whatsapp')">💬 open whatsapp</button>
-      <button class="qbtn" onclick="run('search latest news')">📰 latest news</button>
-      <button class="qbtn" onclick="run('open nexus')">🔭 open nexus</button>
+      <button class="qbtn" onclick="setAndRun('open claude and ask write a poem about the ocean')">🤖 claude + prompt</button>
+      <button class="qbtn" onclick="setAndRun('open chatgpt and ask explain quantum computing')">💬 chatgpt + prompt</button>
+      <button class="qbtn" onclick="setAndRun('play lofi music volume 60 brightness 70')">▶️ yt + vol + bright</button>
+      <button class="qbtn" onclick="setAndRun('play cricket highlights')">🏏 cricket highlights</button>
+      <button class="qbtn" onclick="setAndRun('open youtube')">📺 youtube</button>
+      <button class="qbtn" onclick="setAndRun('open github')">💻 github</button>
+      <button class="qbtn" onclick="setAndRun('open gmail')">📧 gmail</button>
+      <button class="qbtn" onclick="setAndRun('open whatsapp')">💬 whatsapp</button>
     </div>
+
+    <!-- History -->
     <div id="hSec" style="display:none">
-      <div class="lbl"><span>Recent</span><button onclick="clearHist()">clear</button></div>
+      <div class="lbl">
+        <span>Recent</span>
+        <button onclick="clearHist()">clear</button>
+      </div>
       <div class="hlist" id="hList"></div>
+    </div>
+
+  </div>
+
+  <!-- ══ ASK AI TAB ════════════════════════════════════════════════════════════ -->
+  <div class="pg" id="pg-ai">
+    <div class="input-area">
+      <span style="font-size:14px">🤖</span>
+      <input id="aiIn" type="text" placeholder="Ask anything… what is AI?" autocomplete="off"/>
+      <button class="btn-mic" id="micBtnAi" title="Voice input">🎤</button>
+      <button class="btn-run" onclick="runAI()">ASK</button>
+    </div>
+    <div class="voice-bar" id="voiceBarAi">
+      <div class="waves"><span></span><span></span><span></span><span></span><span></span></div>
+      <span>Listening…</span>
+    </div>
+    <div class="spin-row" id="spinAi"><div class="spin"></div><span>Thinking…</span></div>
+    <div class="msg" id="msgAi"></div>
+    <div class="lbl"><span>Quick questions</span></div>
+    <div class="qgrid">
+      <button class="qbtn" onclick="setAI('what is machine learning')">🧠 machine learning</button>
+      <button class="qbtn" onclick="setAI('explain neural networks simply')">🔬 neural networks</button>
+      <button class="qbtn" onclick="setAI('how does the internet work')">🌐 how internet works</button>
+      <button class="qbtn" onclick="setAI('write a short poem about coding')">✍️ coding poem</button>
     </div>
   </div>
 
-  <!-- Settings page -->
+  <!-- ══ SETTINGS TAB ══════════════════════════════════════════════════════════ -->
   <div class="pg" id="pg-set">
     <div class="sbox">
       <div class="stitle">🔑 Groq API Key</div>
-      <div class="cmds">Key is hardcoded in popup.js — no need to enter it here.<br>
-      To change it, open <span>popup.js</span> → edit line 2.</div>
+      <input class="key-input" id="keyInput" type="password" placeholder="gsk_…"/>
+      <br/>
+      <button class="btn-save" onclick="saveKey()">Save Key</button>
+      <div id="keySaved" style="font-size:11px;color:#00d2aa;margin-top:6px;display:none">✅ Key saved!</div>
     </div>
     <div class="sbox">
-      <div class="stitle">📋 Commands</div>
+      <div class="stitle">💡 Command examples</div>
       <div class="cmds">
-        <span>open youtube / gmail / github / whatsapp</span><br>
-        <span>play cricket highlights</span> — searches YouTube<br>
-        <span>search python tutorial</span> — Google search<br>
+        <span>open claude and ask write a story</span><br>
+        <span>open chatgpt and ask explain black holes</span><br>
+        <span>play lofi music volume 50 brightness 80</span><br>
+        <span>play cricket highlights</span> → YouTube search<br>
+        <span>set volume to 70</span> → current tab<br>
+        <span>set brightness to 40</span> → current tab<br>
         <span>close tab / new tab / go back / reload</span><br>
-        <span>what is AI?</span> — AI answers instantly
+        <span>mute tab / unmute tab</span><br>
+        <span>search python tutorial</span> → Google
       </div>
     </div>
     <div class="sbox" style="margin-bottom:0">
-      <div class="stitle">⌨️ Shortcut</div>
+      <div class="stitle">⌨️ Keyboard shortcut</div>
       <div class="cmds">Press <span>Ctrl + Shift + N</span> anywhere to open NEXUS.</div>
     </div>
   </div>
 
+  <!-- Footer -->
   <div class="foot">
-    <span>Ctrl+Shift+N · Enter to run</span>
-    <a href="http://localhost:5000" target="_blank">nexus app →</a>
+    <span>Ctrl+Shift+N · Enter to run · 🎤 voice</span>
+    <a href="http://localhost:5000" target="_blank">nexus →</a>
   </div>
+
 </div>
 <script src="popup.js"></script>
 </body>
