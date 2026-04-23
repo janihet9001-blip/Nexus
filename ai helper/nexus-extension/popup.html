@@ -1,347 +1,499 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<title>NEXUS</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NEXUS AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script>
+(function(){
+  try {
+    chrome.storage.local.get({ nx_theme: 'light' }, function(d) {
+      document.documentElement.setAttribute('data-theme', d.nx_theme || 'light');
+    });
+  } catch(e) {}
+})();
+
+function toggleTheme() {
+  var html = document.documentElement;
+  var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  try { chrome.storage.local.set({ nx_theme: next }); } catch(e) {}
+}
+</script>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-body {
-  width: 460px;
-  min-height: 480px;
-  background: #07080f;
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  color: #dce8f0;
-  overflow-x: hidden;
-}
-
-/* Ambient glow */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(ellipse 70% 40% at 15% 0%, rgba(0,210,170,0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 30% at 85% 100%, rgba(91,110,245,0.07) 0%, transparent 55%);
-  pointer-events: none; z-index: 0;
-}
-
-.wrap { position: relative; z-index: 1; padding: 16px; }
-
-/* ── Header ── */
-.header {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 14px; padding-bottom: 12px;
-  border-bottom: 1px solid rgba(0,210,170,0.08);
-}
-.nx-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: linear-gradient(135deg,rgba(0,210,170,0.18),rgba(91,110,245,0.18));
-  border: 1px solid rgba(0,210,170,0.25);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15px;
-}
-.nx-name { font-size: 15px; font-weight: 700; letter-spacing: 2.5px;
-  background: linear-gradient(135deg,#00d2aa,#818cf8);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.nx-ver { font-size: 9px; color: #2a5a6a; margin-top: 1px; letter-spacing: 1px; }
-.nx-dot { margin-left: auto; display: flex; align-items: center; gap: 5px; }
-.live-dot { width: 6px; height: 6px; border-radius: 50%; background: #00d2aa; box-shadow: 0 0 6px #00d2aa; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-.live-lbl { font-size: 10px; color: #2a6a5a; letter-spacing: 1px; }
-
-/* ── Tabs ── */
-.tabs {
-  display: flex; background: rgba(0,210,170,0.04);
-  border: 1px solid rgba(0,210,170,0.1); border-radius: 10px;
-  padding: 3px; gap: 3px; margin-bottom: 14px;
-}
-.tab-btn {
-  flex: 1; padding: 7px 4px; font-size: 11px; font-weight: 600;
-  border: none; border-radius: 7px; cursor: pointer;
-  background: transparent; color: #3a6a7a; transition: all 0.2s;
-}
-.tab-btn.on { background: linear-gradient(135deg,#0a5f50,#00d2aa); color: #000; }
-
-/* ── Page panels ── */
-.pg { display: none; }
-.pg.on { display: block; }
-
-/* ── Input area ── */
-.input-area {
-  background: rgba(0,210,170,0.05);
-  border: 1px solid rgba(0,210,170,0.18);
-  border-radius: 12px; padding: 11px 13px;
-  display: flex; align-items: center; gap: 8px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  margin-bottom: 10px;
-}
-.input-area:focus-within {
-  border-color: rgba(0,210,170,0.5);
-  box-shadow: 0 0 0 1px rgba(0,210,170,0.1);
-}
-.input-area input {
-  flex: 1; background: transparent; border: none; outline: none;
-  color: #dce8f0; font-size: 13px;
-}
-.input-area input::placeholder { color: #2a5a6a; }
-
-/* ── Voice button ── */
-.btn-mic {
-  width: 32px; height: 32px; border-radius: 50%;
-  border: 1px solid rgba(0,210,170,0.25); background: rgba(0,210,170,0.06);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-size: 15px; transition: all 0.2s; flex-shrink: 0;
-}
-.btn-mic:hover { border-color: rgba(0,210,170,0.5); background: rgba(0,210,170,0.12); }
-.btn-mic.listening {
-  background: rgba(0,210,170,0.2); border-color: #00d2aa;
-  box-shadow: 0 0 10px rgba(0,210,170,0.3);
-  animation: mic-pulse 0.8s ease-in-out infinite;
-}
-@keyframes mic-pulse { 0%,100%{box-shadow:0 0 8px rgba(0,210,170,0.3)} 50%{box-shadow:0 0 18px rgba(0,210,170,0.6)} }
-
-.btn-run {
-  padding: 0 12px; height: 32px; border-radius: 8px;
-  background: linear-gradient(135deg,#0a5f50,#00d2aa);
-  border: none; color: #000; font-size: 11px; font-weight: 700;
-  cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.2s;
-  flex-shrink: 0;
-}
-.btn-run:hover { opacity: 0.85; }
-
-/* ── Voice waveform bar ── */
-.voice-bar {
-  display: none; align-items: center; gap: 6px;
-  background: rgba(0,210,170,0.06); border: 1px solid rgba(0,210,170,0.15);
-  border-radius: 9px; padding: 8px 12px; margin-bottom: 10px; font-size: 11px; color: #00d2aa;
-}
-.voice-bar.on { display: flex; }
-.waves { display: flex; align-items: center; gap: 2px; height: 16px; }
-.waves span {
-  width: 3px; border-radius: 2px; background: #00d2aa;
-  animation: wave 0.5s ease-in-out infinite alternate;
-}
-.waves span:nth-child(1){height:5px;animation-delay:0s}
-.waves span:nth-child(2){height:10px;animation-delay:0.1s}
-.waves span:nth-child(3){height:14px;animation-delay:0.2s}
-.waves span:nth-child(4){height:10px;animation-delay:0.3s}
-.waves span:nth-child(5){height:5px;animation-delay:0.4s}
-@keyframes wave { from{transform:scaleY(1)} to{transform:scaleY(1.8)} }
-
-/* ── Spinner ── */
-.spin-row { display: none; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 11px; color: #2a6a5a; }
-.spin-row.on { display: flex; }
-.spin { width: 11px; height: 11px; border: 1.5px solid rgba(0,210,170,0.15); border-top-color: #00d2aa; border-radius: 50%; animation: rot 0.6s linear infinite; }
-@keyframes rot { to{transform:rotate(360deg)} }
-
-/* ── Messages ── */
-.msg { margin-bottom: 8px; padding: 10px 13px; border-radius: 9px; font-size: 12px; line-height: 1.65; display: none; }
-.msg.ok  { display: block; background: rgba(0,210,170,0.07);  border: 1px solid rgba(0,210,170,0.18);  color: #00d2aa; }
-.msg.err { display: block; background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.18); color: #f87171; }
-.msg.ans { display: block; background: rgba(6,12,30,0.8); border: 1px solid rgba(0,210,170,0.12); color: #dce8f0; max-height: 160px; overflow-y: auto; white-space: pre-wrap; }
-
-/* ── AI prompt banner ── */
-.ai-prompt-info {
-  display: none; background: rgba(91,110,245,0.08);
-  border: 1px solid rgba(91,110,245,0.2); border-radius: 9px;
-  padding: 9px 12px; margin-bottom: 10px; font-size: 11px; color: #8b9bff;
-  line-height: 1.6;
-}
-.ai-prompt-info.on { display: block; }
-
-/* ── Section label ── */
-.lbl {
-  font-size: 10px; color: #2a5a6a; margin: 10px 0 6px;
-  letter-spacing: 1px; text-transform: uppercase;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.lbl button { font-size: 10px; color: #2a5a6a; background: none; border: none; cursor: pointer; }
-.lbl button:hover { color: #f87171; }
-
-/* ── Quick commands grid ── */
-.qgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-.qbtn {
-  background: rgba(0,210,170,0.04); border: 1px solid rgba(0,210,170,0.09);
-  border-radius: 7px; padding: 7px 9px; font-size: 11px; color: #5a8a9a;
-  cursor: pointer; text-align: left; transition: all 0.15s;
-}
-.qbtn:hover { border-color: rgba(0,210,170,0.3); color: #00d2aa; background: rgba(0,210,170,0.07); }
-
-/* ── History ── */
-.hlist { display: flex; flex-direction: column; gap: 4px; }
-.hitem {
-  font-size: 11px; color: #3a6a7a; padding: 5px 9px;
-  background: rgba(0,210,170,0.02); border: 1px solid rgba(0,210,170,0.06);
-  border-radius: 6px; cursor: pointer; overflow: hidden;
-  text-overflow: ellipsis; white-space: nowrap; transition: all 0.15s;
-}
-.hitem:hover { border-color: rgba(0,210,170,0.22); color: #00d2aa; }
-
-/* ── Settings ── */
-.sbox {
-  background: rgba(0,210,170,0.03); border: 1px solid rgba(0,210,170,0.1);
-  border-radius: 10px; padding: 13px; margin-bottom: 10px;
-}
-.stitle { font-size: 12px; font-weight: 600; color: #00d2aa; margin-bottom: 7px; }
-.cmds { font-size: 11px; color: #4a6a7a; line-height: 2.0; }
-.cmds span { color: #00d2aa; }
-.key-input {
-  width: 100%; background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(0,210,170,0.2); border-radius: 7px;
-  padding: 8px 10px; color: #dce8f0; font-size: 12px;
-  outline: none; margin-top: 6px; font-family: monospace;
-}
-.key-input:focus { border-color: rgba(0,210,170,0.5); }
-.btn-save {
-  margin-top: 7px; padding: 6px 14px; background: linear-gradient(135deg,#0a5f50,#00d2aa);
-  border: none; border-radius: 7px; color: #000; font-size: 11px;
-  font-weight: 600; cursor: pointer;
+/* ── LIGHT THEME ── */
+[data-theme="light"]{
+  --ink:    #0a0a0b;
+  --ink2:   #3a3a40;
+  --ink3:   #8a8a95;
+  --ink4:   #c4c4cc;
+  --paper:  #ffffff;
+  --paper2: #f4f4f6;
+  --paper3: #ebebee;
+  --line:   #e2e2e6;
+  --punch:  #e8fd6b;
+  --punch-txt: #0a0a0b;
+  --red:    #ff3b47;
+  --green:  #00c97a;
+  --msg-ok-bg:#f0fdf7;--msg-ok-bd:#bbf0d8;--msg-ok-tx:#0a7a45;
+  --msg-err-bg:#fff5f5;--msg-err-bd:#ffd5d5;
+  --msg-ans-bg:var(--paper2);--msg-ans-bd:var(--line);--msg-ans-tx:var(--ink2);
+  --ai-inf-bg:#f4f4ff;--ai-inf-bd:#d8d8f0;--ai-inf-tx:#4444a0;
+  --vb-bg:#fff5f5;--vb-bd:#ffd5d5;
+  --go-bg:var(--ink);--go-hover:#1a1a1e;
 }
 
-/* ── Footer ── */
-.foot {
-  display: flex; justify-content: space-between; margin-top: 12px;
-  padding-top: 10px; border-top: 1px solid rgba(0,210,170,0.06);
-  font-size: 10px; color: #1a3a4a;
+/* ── DARK THEME ── */
+[data-theme="dark"]{
+  --ink:    #f0f0f2;
+  --ink2:   #b8b8c2;
+  --ink3:   #66667a;
+  --ink4:   #44444e;
+  --paper:  #111114;
+  --paper2: #1a1a1f;
+  --paper3: #222228;
+  --line:   #2a2a32;
+  --punch:  #e8fd6b;
+  --punch-txt: #0a0a0b;
+  --red:    #ff4f5a;
+  --green:  #00c97a;
+  --msg-ok-bg:#0a2318;--msg-ok-bd:#0f4a2e;--msg-ok-tx:#00c97a;
+  --msg-err-bg:#2a1014;--msg-err-bd:#5a1a1f;
+  --msg-ans-bg:var(--paper2);--msg-ans-bd:var(--line);--msg-ans-tx:var(--ink2);
+  --ai-inf-bg:#12122a;--ai-inf-bd:#2a2a5a;--ai-inf-tx:#8888d0;
+  --vb-bg:#2a1014;--vb-bd:#5a1a1f;
+  --go-bg:#e8fd6b;--go-hover:#d4e840;
 }
-.foot a { color: #00d2aa; text-decoration: none; opacity: 0.45; }
-.foot a:hover { opacity: 1; }
+
+body{
+  width:380px;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  -webkit-font-smoothing:antialiased;
+  user-select:none;
+  overflow:hidden;
+  transition:background 0.2s,color 0.2s;
+}
+
+/* ── HEADER ── */
+.hd{
+  padding:14px 16px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line);
+}
+
+.hd-left{display:flex;align-items:center;gap:12px}
+
+.hd-name{
+  font-family:'Syne',sans-serif;
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:-0.03em;
+  color:var(--ink);
+  line-height:1;
+}
+
+.hd-sub{
+  font-size:9px;
+  color:var(--ink3);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  margin-top:3px;
+}
+
+/* Header right: pill + theme toggle */
+.hd-right{display:flex;align-items:center;gap:8px}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:var(--paper2);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:4px 9px;
+  font-size:10px;
+  color:var(--ink3);
+  transition:background 0.2s,border-color 0.2s;
+}
+
+.pill-dot{
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--green);
+}
+
+/* ── THEME TOGGLE ── */
+.theme-btn{
+  width:32px;height:18px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--paper2);
+  cursor:pointer;
+  position:relative;
+  transition:all 0.22s;
+  flex-shrink:0;
+}
+
+.theme-btn::after{
+  content:'';
+  position:absolute;
+  top:2px;left:2px;
+  width:12px;height:12px;
+  border-radius:50%;
+  background:var(--ink3);
+  transition:transform 0.22s cubic-bezier(.4,0,.2,1),background 0.22s;
+}
+
+[data-theme="dark"] .theme-btn{
+  background:var(--paper3);
+  border-color:var(--line);
+}
+
+[data-theme="dark"] .theme-btn::after{
+  transform:translateX(14px);
+  background:var(--punch);
+}
+
+/* ── TABS ── */
+.tabs{
+  display:flex;
+  padding:0 16px;
+  border-bottom:1px solid var(--line);
+  background:var(--paper);
+  transition:background 0.2s;
+}
+
+.tb{
+  font-family:'Syne',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.01em;
+  color:var(--ink3);
+  background:none;
+  border:none;
+  padding:9px 12px 8px;
+  cursor:pointer;
+  position:relative;
+  transition:color 0.15s;
+}
+
+.tb::after{
+  content:'';
+  position:absolute;
+  bottom:-1px;left:0;right:0;
+  height:2px;
+  background:var(--ink);
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform 0.2s cubic-bezier(.4,0,.2,1);
+}
+
+.tb.on{color:var(--ink)}
+.tb.on::after{transform:scaleX(1)}
+.tb:not(.on):hover{color:var(--ink2)}
+
+/* ── PAGE ── */
+.pg{display:none;padding:14px 16px 16px}
+.pg.on{display:block}
+
+/* ── INPUT ── */
+.iw{position:relative;margin-bottom:8px}
+
+input.cmd{
+  width:100%;
+  background:var(--paper2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  color:var(--ink);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  padding:10px 46px 10px 12px;
+  outline:none;
+  transition:border-color 0.15s,background 0.15s;
+}
+
+input.cmd::placeholder{color:var(--ink4)}
+input.cmd:focus{background:var(--paper);border-color:var(--ink3)}
+
+.ia{
+  position:absolute;
+  right:6px;top:50%;
+  transform:translateY(-50%);
+  display:flex;gap:4px;
+}
+
+.ib{
+  width:26px;height:26px;
+  border-radius:5px;
+  border:1px solid var(--line);
+  background:var(--paper);
+  color:var(--ink2);
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  transition:all 0.12s;
+  flex-shrink:0;
+}
+
+.ib:hover{background:var(--paper3);border-color:var(--ink3);color:var(--ink)}
+.ib svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.ib.listening{background:var(--red);border-color:var(--red);color:#fff}
+
+/* ── RUN BUTTON ── */
+.go{
+  width:100%;
+  background:var(--go-bg);
+  border:none;
+  border-radius:8px;
+  font-family:'Syne',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.03em;
+  padding:10px;
+  cursor:pointer;
+  transition:background 0.15s,transform 0.1s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+}
+
+/* light: dark bg + yellow text / dark: yellow bg + dark text */
+[data-theme="light"] .go{color:var(--punch)}
+[data-theme="dark"]  .go{color:var(--punch-txt)}
+
+.go:hover{background:var(--go-hover)}
+.go:active{transform:scale(0.985)}
+
+.go-arr{
+  width:16px;height:16px;
+  border-radius:3px;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+}
+[data-theme="light"] .go-arr{background:var(--punch)}
+[data-theme="dark"]  .go-arr{background:#0a0a0b}
+
+.go-arr svg{width:9px;height:9px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+[data-theme="light"] .go-arr svg{stroke:#0a0a0b}
+[data-theme="dark"]  .go-arr svg{stroke:var(--punch)}
+
+/* ── VOICE BAR ── */
+.vb{display:none;align-items:center;gap:8px;padding:6px 10px;margin-bottom:8px;border-radius:6px;background:var(--vb-bg);border:1px solid var(--vb-bd);font-size:10px;color:var(--red)}
+.vb.on{display:flex}
+.vb-waves{display:flex;gap:2px;align-items:center}
+.vb-waves span{display:block;width:2px;background:var(--red);border-radius:2px;animation:wb 0.6s ease-in-out infinite alternate}
+.vb-waves span:nth-child(1){height:5px;animation-delay:0s}
+.vb-waves span:nth-child(2){height:11px;animation-delay:0.1s}
+.vb-waves span:nth-child(3){height:7px;animation-delay:0.2s}
+.vb-waves span:nth-child(4){height:13px;animation-delay:0.05s}
+.vb-waves span:nth-child(5){height:5px;animation-delay:0.15s}
+@keyframes wb{from{transform:scaleY(0.3)}to{transform:scaleY(1)}}
+
+/* ── MSG ── */
+.msg{font-size:11px;line-height:1.5;border-radius:6px;margin-top:8px;display:none}
+.msg:not(:empty){display:block;padding:9px 11px}
+.msg.ok{background:var(--msg-ok-bg);border:1px solid var(--msg-ok-bd);color:var(--msg-ok-tx)}
+.msg.err{background:var(--msg-err-bg);border:1px solid var(--msg-err-bd);color:var(--red)}
+.msg.ans{background:var(--msg-ans-bg);border:1px solid var(--msg-ans-bd);color:var(--msg-ans-tx);white-space:pre-wrap}
+
+/* ── SPINNER ── */
+.sp{display:none;align-items:center;gap:8px;margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--paper2);border:1px solid var(--line)}
+.sp.on{display:flex}
+.sp-ring{width:12px;height:12px;border:1.5px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:spin 0.65s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sp span{font-size:10px;color:var(--ink3)}
+
+/* ── AI INFO ── */
+.ai-inf{display:none;margin-top:8px;padding:9px 11px;border-radius:6px;background:var(--ai-inf-bg);border:1px solid var(--ai-inf-bd);font-size:10px;color:var(--ai-inf-tx);white-space:pre-wrap;line-height:1.6}
+.ai-inf.on{display:block}
+
+/* ── SECTION LABEL ── */
+.sl{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin:14px 0 6px;font-family:'Syne',sans-serif;font-weight:600}
+
+/* ── CHIPS ── */
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:5px 10px;border-radius:5px;border:1px solid var(--line);background:var(--paper2);color:var(--ink2);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;transition:all 0.12s}
+
+[data-theme="light"] .chip:hover{background:#0a0a0b;border-color:#0a0a0b;color:#e8fd6b}
+[data-theme="dark"]  .chip:hover{background:#e8fd6b;border-color:#e8fd6b;color:#0a0a0b}
+
+/* ── HISTORY ── */
+#hSec{display:none;margin-top:14px}
+.hh{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.hl{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);font-family:'Syne',sans-serif;font-weight:600}
+.clr{font-size:10px;color:var(--ink3);background:none;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:color 0.12s}
+.clr:hover{color:var(--red)}
+.hitem{padding:6px 9px;border-radius:5px;border:1px solid transparent;color:var(--ink3);font-size:10px;cursor:pointer;transition:all 0.12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.hitem:hover{background:var(--paper2);border-color:var(--line);color:var(--ink)}
+
+/* ── SETTINGS ── */
+.set-sec{margin-bottom:18px}
+.set-l{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.set-l::after{content:'';flex:1;height:1px;background:var(--line)}
+.ki{width:100%;background:var(--paper2);border:1px solid var(--line);border-radius:8px;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:11px;padding:10px 12px;outline:none;transition:border-color 0.15s,background 0.15s;margin-bottom:8px}
+.ki::placeholder{color:var(--ink4)}
+.ki:focus{background:var(--paper);border-color:var(--ink3)}
+.sk{padding:8px 14px;background:transparent;border:1.5px solid var(--ink);border-radius:6px;color:var(--ink);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:0.04em;cursor:pointer;transition:all 0.15s}
+
+[data-theme="light"] .sk:hover{background:#0a0a0b;color:#e8fd6b}
+[data-theme="dark"]  .sk:hover{background:#e8fd6b;border-color:#e8fd6b;color:#0a0a0b}
+
+.ks{display:none;margin-top:8px;font-size:10px;color:var(--green)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.info-tile{background:var(--paper2);border:1px solid var(--line);border-radius:6px;padding:9px 11px;transition:background 0.2s,border-color 0.2s}
+.info-tile .k{font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink3);margin-bottom:3px}
+.info-tile .v{font-size:11px;color:var(--ink);font-weight:500}
+
+/* ── BOTTOM BAR ── */
+.bb{padding:8px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:var(--paper2);transition:background 0.2s,border-color 0.2s}
+.bb-hint{font-size:9px;color:var(--ink4);letter-spacing:0.06em}
+.bb-mark{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--ink3)}
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <!-- Header -->
-  <div class="header">
-    <div class="nx-icon">⬡</div>
+<!-- Header -->
+<div class="hd">
+  <div class="hd-left">
     <div>
-      <div class="nx-name">NEXUS</div>
-      <div class="nx-ver">AI ASSISTANT v2.0</div>
-    </div>
-    <div class="nx-dot">
-      <div class="live-dot"></div>
-      <span class="live-lbl">LIVE</span>
+      <div class="hd-name">NEXUS</div>
+      <div class="hd-sub">AI Assistant</div>
     </div>
   </div>
-
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab-btn on" id="t-cmd"  onclick="showTab('cmd')">⚡ Command</button>
-    <button class="tab-btn"   id="t-ai"   onclick="showTab('ai')">🤖 Ask AI</button>
-    <button class="tab-btn"   id="t-set"  onclick="showTab('set')">⚙️ Settings</button>
+  <div class="hd-right">
+    <div class="pill">
+      <span class="pill-dot"></span>
+      online
+    </div>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme" onclick="toggleTheme()"></button>
   </div>
-
-  <!-- ══ COMMAND TAB ══════════════════════════════════════════════════════════ -->
-  <div class="pg on" id="pg-cmd">
-
-    <!-- Input row -->
-    <div class="input-area">
-      <span style="font-size:14px">⚡</span>
-      <input id="cmdIn" type="text"
-        placeholder="open claude and ask about black holes…"
-        autocomplete="off"/>
-      <button class="btn-mic" id="micBtn" title="Voice command (click to speak)">🎤</button>
-      <button class="btn-run" onclick="runCmd()">RUN</button>
-    </div>
-
-    <!-- Voice listening indicator -->
-    <div class="voice-bar" id="voiceBar">
-      <div class="waves"><span></span><span></span><span></span><span></span><span></span></div>
-      <span id="voiceTxt">Listening… speak your command</span>
-    </div>
-
-    <!-- AI Prompt info (shown when command opens AI site with prompt) -->
-    <div class="ai-prompt-info" id="aiInfo"></div>
-
-    <!-- Spinner -->
-    <div class="spin-row" id="spin"><div class="spin"></div><span id="spinTxt">Working…</span></div>
-
-    <!-- Result message -->
-    <div class="msg" id="msg"></div>
-
-    <!-- Quick commands -->
-    <div class="lbl"><span>Quick commands</span></div>
-    <div class="qgrid">
-      <button class="qbtn" onclick="setAndRun('open claude and ask write a poem about the ocean')">🤖 claude + prompt</button>
-      <button class="qbtn" onclick="setAndRun('open chatgpt and ask explain quantum computing')">💬 chatgpt + prompt</button>
-      <button class="qbtn" onclick="setAndRun('play lofi music volume 60 brightness 70')">▶️ yt + vol + bright</button>
-      <button class="qbtn" onclick="setAndRun('play cricket highlights')">🏏 cricket highlights</button>
-      <button class="qbtn" onclick="setAndRun('open youtube')">📺 youtube</button>
-      <button class="qbtn" onclick="setAndRun('open github')">💻 github</button>
-      <button class="qbtn" onclick="setAndRun('open gmail')">📧 gmail</button>
-      <button class="qbtn" onclick="setAndRun('open whatsapp')">💬 whatsapp</button>
-    </div>
-
-    <!-- History -->
-    <div id="hSec" style="display:none">
-      <div class="lbl">
-        <span>Recent</span>
-        <button onclick="clearHist()">clear</button>
-      </div>
-      <div class="hlist" id="hList"></div>
-    </div>
-
-  </div>
-
-  <!-- ══ ASK AI TAB ════════════════════════════════════════════════════════════ -->
-  <div class="pg" id="pg-ai">
-    <div class="input-area">
-      <span style="font-size:14px">🤖</span>
-      <input id="aiIn" type="text" placeholder="Ask anything… what is AI?" autocomplete="off"/>
-      <button class="btn-mic" id="micBtnAi" title="Voice input">🎤</button>
-      <button class="btn-run" onclick="runAI()">ASK</button>
-    </div>
-    <div class="voice-bar" id="voiceBarAi">
-      <div class="waves"><span></span><span></span><span></span><span></span><span></span></div>
-      <span>Listening…</span>
-    </div>
-    <div class="spin-row" id="spinAi"><div class="spin"></div><span>Thinking…</span></div>
-    <div class="msg" id="msgAi"></div>
-    <div class="lbl"><span>Quick questions</span></div>
-    <div class="qgrid">
-      <button class="qbtn" onclick="setAI('what is machine learning')">🧠 machine learning</button>
-      <button class="qbtn" onclick="setAI('explain neural networks simply')">🔬 neural networks</button>
-      <button class="qbtn" onclick="setAI('how does the internet work')">🌐 how internet works</button>
-      <button class="qbtn" onclick="setAI('write a short poem about coding')">✍️ coding poem</button>
-    </div>
-  </div>
-
-  <!-- ══ SETTINGS TAB ══════════════════════════════════════════════════════════ -->
-  <div class="pg" id="pg-set">
-    <div class="sbox">
-      <div class="stitle">🔑 Groq API Key</div>
-      <input class="key-input" id="keyInput" type="password" placeholder="gsk_…"/>
-      <br/>
-      <button class="btn-save" onclick="saveKey()">Save Key</button>
-      <div id="keySaved" style="font-size:11px;color:#00d2aa;margin-top:6px;display:none">✅ Key saved!</div>
-    </div>
-    <div class="sbox">
-      <div class="stitle">💡 Command examples</div>
-      <div class="cmds">
-        <span>open claude and ask write a story</span><br>
-        <span>open chatgpt and ask explain black holes</span><br>
-        <span>play lofi music volume 50 brightness 80</span><br>
-        <span>play cricket highlights</span> → YouTube search<br>
-        <span>set volume to 70</span> → current tab<br>
-        <span>set brightness to 40</span> → current tab<br>
-        <span>close tab / new tab / go back / reload</span><br>
-        <span>mute tab / unmute tab</span><br>
-        <span>search python tutorial</span> → Google
-      </div>
-    </div>
-    <div class="sbox" style="margin-bottom:0">
-      <div class="stitle">⌨️ Keyboard shortcut</div>
-      <div class="cmds">Press <span>Ctrl + Shift + N</span> anywhere to open NEXUS.</div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <div class="foot">
-    <span>Ctrl+Shift+N · Enter to run · 🎤 voice</span>
-    <a href="http://localhost:5000" target="_blank">nexus →</a>
-  </div>
-
 </div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tb on" id="t-cmd" onclick="showTab('cmd')">Command</button>
+  <button class="tb"    id="t-ai"  onclick="showTab('ai')">Ask AI</button>
+  <button class="tb"    id="t-set" onclick="showTab('set')">Settings</button>
+</div>
+
+<!-- CMD PAGE -->
+<div class="pg on" id="pg-cmd">
+  <div class="iw">
+    <input class="cmd" id="cmdIn" placeholder="open claude / play lofi / search …" autocomplete="off" spellcheck="false"/>
+    <div class="ia">
+      <button class="ib" id="micBtn" title="Voice">
+        <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="vb" id="voiceBar">
+    <div class="vb-waves"><span></span><span></span><span></span><span></span><span></span></div>
+    Listening…
+  </div>
+
+  <button class="go" onclick="runCmd()">
+    <div class="go-arr"><svg viewBox="0 0 9 9"><path d="M2 7L7 2M7 2H3M7 2V6"/></svg></div>
+    Run Command
+  </button>
+
+  <div id="msg"  class="msg"></div>
+  <div id="spin" class="sp"><div class="sp-ring"></div><span>Running…</span></div>
+  <div id="aiInfo" class="ai-inf"></div>
+
+  <div class="sl">Quick actions</div>
+  <div class="chips">
+    <div class="chip" onclick="setAndRun('open claude')">claude</div>
+    <div class="chip" onclick="setAndRun('open chatgpt')">chatgpt</div>
+    <div class="chip" onclick="setAndRun('open youtube')">youtube</div>
+    <div class="chip" onclick="setAndRun('open github')">github</div>
+    <div class="chip" onclick="setAndRun('new tab')">new tab</div>
+    <div class="chip" onclick="setAndRun('close tab')">close tab</div>
+    <div class="chip" onclick="setAndRun('scroll down')">scroll ↓</div>
+    <div class="chip" onclick="setAndRun('scroll up')">scroll ↑</div>
+    <div class="chip" onclick="setAndRun('reload')">reload</div>
+    <div class="chip" onclick="setAndRun('mute tab')">mute</div>
+  </div>
+
+  <div id="hSec">
+    <div class="hh">
+      <div class="hl">Recent</div>
+      <button class="clr" onclick="clearHist()">clear</button>
+    </div>
+    <div id="hList"></div>
+  </div>
+</div>
+
+<!-- AI PAGE -->
+<div class="pg" id="pg-ai">
+  <div class="sl" style="margin-top:0">Try asking</div>
+  <div class="chips" style="margin-bottom:12px">
+    <div class="chip" onclick="setAI('Summarize this page')">summarize page</div>
+    <div class="chip" onclick="setAI('Explain like I am 5')">ELI5</div>
+    <div class="chip" onclick="setAI('Best way to learn AI in 2025?')">learn AI</div>
+    <div class="chip" onclick="setAI('Write a quick email draft')">email draft</div>
+  </div>
+
+  <div class="iw">
+    <input class="cmd" id="aiIn" placeholder="ask anything…" autocomplete="off" spellcheck="false"/>
+    <div class="ia">
+      <button class="ib" id="micBtnAi" title="Voice">
+        <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="vb" id="voiceBarAi">
+    <div class="vb-waves"><span></span><span></span><span></span><span></span><span></span></div>
+    Listening…
+  </div>
+
+  <button class="go" onclick="runAI()">
+    <div class="go-arr"><svg viewBox="0 0 9 9"><path d="M2 7L7 2M7 2H3M7 2V6"/></svg></div>
+    Ask Llama 3.3
+  </button>
+
+  <div id="msgAi"  class="msg"></div>
+  <div id="spinAi" class="sp"><div class="sp-ring"></div><span>Thinking…</span></div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="pg" id="pg-set">
+  <div class="set-sec">
+    <div class="set-l">Groq API Key</div>
+    <input class="ki" id="keyInput" type="password" placeholder="gsk_••••••••••••••••••••••••"/>
+    <button class="sk" onclick="saveKey()">Save Key</button>
+    <div class="ks" id="keySaved">✓ Key saved</div>
+  </div>
+  <div class="set-sec">
+    <div class="set-l">Config</div>
+    <div class="info-grid">
+      <div class="info-tile"><div class="k">Model</div><div class="v">llama-3.3-70b</div></div>
+      <div class="info-tile"><div class="k">Language</div><div class="v">en-IN</div></div>
+      <div class="info-tile"><div class="k">Shortcut</div><div class="v">Ctrl+Shift+N</div></div>
+      <div class="info-tile"><div class="k">History</div><div class="v">12 entries</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom bar -->
+<div class="bb">
+  <span class="bb-hint">↵ enter to run &nbsp;·&nbsp; esc to clear</span>
+  <div class="bb-mark">NX v2.0</div>
+</div>
+
+<script src="config.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>
