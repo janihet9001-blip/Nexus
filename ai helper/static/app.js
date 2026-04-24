@@ -267,7 +267,7 @@ async function handlePPTRequest(question, msgs) {
         </div>`;
       msgs.appendChild(successDiv);
       successDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      showToast('✅ PPT downloaded!');
+      showToast(' PPT downloaded!');
 
     } else {
       const data = await res.json();
@@ -370,7 +370,7 @@ async function handleYouTubeRequest(url, msgs) {
     msgs.appendChild(summaryDiv);
     summaryDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-    showToast('✅ YouTube summary ready!');
+    showToast('YouTube summary ready!');
     loadHistory();
 
   } catch(err) {
@@ -404,7 +404,7 @@ function downloadYTPDF(id, pdfB64, title) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   } catch(e) {
-    showToast('❌ PDF download failed: ' + e.message);
+    showToast(' PDF download failed: ' + e.message);
   }
 }
 
@@ -414,7 +414,7 @@ let isListening = false;
 
 function initVoice() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { showToast('⚠️ Voice not supported. Use Chrome.'); return false; }
+  if (!SR) { showToast(' Voice not supported. Use Chrome.'); return false; }
 
   recognition = new SR();
   recognition.continuous     = false;
@@ -431,7 +431,7 @@ function initVoice() {
     isListening = true;
     const btn = document.getElementById('voiceBtn');
     if (btn) { btn.textContent = '🔴 Stop'; btn.classList.add('listening'); }
-    showToast('🎤 Listening... speak now!');
+    showToast(' Listening... speak now!');
   };
 
   recognition.onresult = (e) => {
@@ -442,13 +442,13 @@ function initVoice() {
 
   recognition.onerror  = (e) => {
     stopVoice();
-    showToast(e.error === 'not-allowed' ? '❌ Mic blocked' : '❌ Voice error: ' + e.error);
+    showToast(e.error === 'not-allowed' ? ' Mic blocked' : 'Voice error: ' + e.error);
   };
 
   recognition.onend = () => {
     stopVoice();
     const q = document.getElementById('qInput').value.trim();
-    if (q) { showToast('✓ Got it! Sending...'); setTimeout(handleAsk, 600); }
+    if (q) { showToast(' Got it! Sending...'); setTimeout(handleAsk, 600); }
   };
 
   return true;
@@ -474,7 +474,7 @@ async function exportPDF(question, answer, confidence, sourcesJson) {
   try { sources = typeof sourcesJson === 'string' ? JSON.parse(sourcesJson) : sourcesJson; }
   catch(e) { sources = []; }
 
-  showToast('📄 Generating PDF...');
+  showToast('Generating PDF...');
   try {
     const res = await fetch('/api/export-pdf', {
       method:  'POST',
@@ -493,8 +493,8 @@ async function exportPDF(question, answer, confidence, sourcesJson) {
     document.body.appendChild(a); a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('✅ PDF downloaded!');
-  } catch(e) { showToast('❌ ' + e.message); }
+    showToast(' PDF downloaded!');
+  } catch(e) { showToast('' + e.message); }
 }
 
 // ── Copy & Share ──────────────────────────────────────
@@ -517,7 +517,7 @@ function closeShare() { document.getElementById('shareModal').classList.remove('
 
 function copyShareText() {
   navigator.clipboard.writeText(document.getElementById('shareText').value).then(() => {
-    showToast('Copied! Ready to share 🎉'); closeShare();
+    showToast('Copied! Ready to share '); closeShare();
   });
 }
 
@@ -803,7 +803,7 @@ let chatMessages = [];
 function clearChatHistory() {
   chatMessages = [];
   newChat();
-  showToast('💬 New conversation started');
+  showToast(' New conversation started');
 }
 
 async function runChatPipeline() {
