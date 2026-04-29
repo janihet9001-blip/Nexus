@@ -1,4 +1,4 @@
-# NEXUS AI 🧠
+# NEXUS AI 
 
 > **Control your browser and get AI answers — by voice or text.**
 > A Chrome extension + Flask web app powered by Llama 3.3 via Groq.
