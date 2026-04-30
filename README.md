@@ -22,7 +22,7 @@ Both are powered by **Llama 3.3 70B** via the [Groq](https://groq.com) API (free
 | Command | Example |
 |---|---|
 | Open any site | `open github` / `open youtube` |
-| Open AI with a prompt | `claude explain recursion` |
+| Open AI with a prompt | `claude explain recursion`  |
 | Play YouTube | `play lofi hip hop` |
 | Set volume | `volume 60` |
 | Set brightness | `brightness 40` |
