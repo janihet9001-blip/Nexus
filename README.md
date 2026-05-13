@@ -4,9 +4,8 @@
 ![Python](https://img.shields.io/badge/Python-3.10-blue)
 ![Flask](https://img.shields.io/badge/Flask-Backend-black)
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-green)
-![AI Powered](https://img.shields.io/badge/AI-Llama%203.3-orange)
+![AI Powered](https://img.shields.io/badge/AI-Llama_3.3-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-
 Control your browser and get AI answers by voice or text.
 
 NEXUS is a Chrome extension and Flask web application powered by Llama 3.3 through the Groq API.
