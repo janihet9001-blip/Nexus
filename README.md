@@ -182,7 +182,6 @@ Press `Ctrl+Shift+N` (or `Cmd+Shift+N` on Mac) to open the NEXUS command bar fro
 - `config.js` and `.env` contain your API key — **never commit these to GitHub**. Add both to your `.gitignore`.
 - The extension stores your key in `chrome.storage.local`, not in plain files.
 - History is stored locally in `history.json`. It is not sent anywhere.
-- YouTube summarisation requires the video to have captions/subtitles enabled.
 
 ---
 
