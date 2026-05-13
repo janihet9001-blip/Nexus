@@ -1,11 +1,11 @@
-````md
 # NEXUS AI
 
-![Python](https://img.shields.io/badge/Python-3.10-blue)
-![Flask](https://img.shields.io/badge/Flask-Backend-black)
-![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-green)
-![AI Powered](https://img.shields.io/badge/AI-Llama_3.3-orange)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![Python](https://img.shields.io/badge/Python-3.10-blue.svg)
+![Flask](https://img.shields.io/badge/Flask-Backend-black.svg)
+![Chrome_Extension](https://img.shields.io/badge/Chrome_Extension-Enabled-green.svg)
+![AI_Model](https://img.shields.io/badge/AI_Model-Llama3-orange.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+
 Control your browser and get AI answers by voice or text.
 
 NEXUS is a Chrome extension and Flask web application powered by Llama 3.3 through the Groq API.
