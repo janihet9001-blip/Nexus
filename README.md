@@ -12,7 +12,7 @@ NEXUS is a dual-mode AI assistant:
 - **Chrome Extension** — a command bar you summon with `Ctrl+Shift+N` to control your browser, open AI tools, play YouTube, search the web, and ask quick questions — all by voice or text.
 - **Web App (Flask)** — a full-featured AI Q&A interface with search-augmented answers, a chatbot with memory, YouTube video summariser, PowerPoint generator, and PDF export.
 
-Both are powered by **Llama 3.3 70B** via the [Groq](https://groq.com) API (free tier available).
+Both are powered by **Llama 3.3 70B** via the [Groq](https://groq.com) API (free tier available    ).
 
 ---
 
